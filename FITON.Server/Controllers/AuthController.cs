@@ -59,6 +59,41 @@ public class AuthController : ControllerBase
         return Ok(new { user.Id, user.Username, user.Email });
     }
 
+    [HttpPost("admin-register")]
+    public async Task<IActionResult> AdminRegister([FromBody] RegisterDto dto)
+    {
+        if (await _db.Users.AnyAsync(u => u.Username == dto.Username || u.Email == dto.Email))
+            return BadRequest("Username or Email already exists");
+
+        var user = new User
+        {
+            Username = dto.Username,
+            Email = dto.Email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+            IsAdmin = true
+        };
+
+        _db.Users.Add(user);
+        await _db.SaveChangesAsync();
+
+        await SetTokens(user);
+
+        return Ok(new { user.Id, user.Username, user.Email });
+    }
+
+    [HttpPost("admin-login")]
+    public async Task<IActionResult> AdminLogin([FromBody] LoginDto dto)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+        if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash) || !user.IsAdmin)
+            return Unauthorized(new { Error = "Invalid credentials" });
+
+        await SetTokens(user);
+
+        return Ok(new { user.Id, user.Username, user.Email });
+    }
+
+
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh()
     {
@@ -157,5 +192,5 @@ public class AuthController : ControllerBase
     }
 }
 
-public class RegisterDto { public string Username { get; set; } = null!; public string Email { get; set; } = null!; public string Password { get; set; } = null!; }
+public class RegisterDto { public string Username { get; set; } = null!; public string Email { get; set; } = null!; public string Password { get; set; } = null!; public Boolean IsAdmin { get; set; } = false; }
 public class LoginDto { public string Email { get; set; } = null!; public string Password { get; set; } = null!; }
