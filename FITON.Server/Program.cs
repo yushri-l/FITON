@@ -30,11 +30,14 @@ builder.Services.AddCors(options =>
     options.AddPolicy("CorsPolicy", policy =>
     {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         policy.WithOrigins("http://localhost:4403") // React dev URL
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
 =======
+=======
+>>>>>>> Stashed changes
         policy
             .SetIsOriginAllowed(origin =>
             {
@@ -45,6 +48,9 @@ builder.Services.AddCors(options =>
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
     });
 });
