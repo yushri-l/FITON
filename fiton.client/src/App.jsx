@@ -4,9 +4,14 @@ import './App.css';
 function App() {
     const [forecasts, setForecasts] = useState();
 
+<<<<<<< Updated upstream
     useEffect(() => {
         populateWeatherData();
     }, []);
+=======
+// ======== Config ========
+const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL ?? "http://localhost:5230";
+>>>>>>> Stashed changes
 
     const contents = forecasts === undefined
         ? <p><em>Loading... Please refresh once the ASP.NET backend has started. See <a href="https://aka.ms/jspsintegrationreact">https://aka.ms/jspsintegrationreact</a> for more details.</em></p>

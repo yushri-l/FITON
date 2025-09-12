@@ -29,10 +29,23 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", policy =>
     {
+<<<<<<< Updated upstream
         policy.WithOrigins("http://localhost:4403") // React dev URL
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
+=======
+        policy
+            .SetIsOriginAllowed(origin =>
+            {
+                if (origin is null) return false;
+                var uri = new Uri(origin);
+                return uri.Host == "localhost" || uri.Host == "127.0.0.1";
+            })
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+>>>>>>> Stashed changes
     });
 });
 
