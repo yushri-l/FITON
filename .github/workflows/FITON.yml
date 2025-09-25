@@ -42,12 +42,4 @@ jobs:
         run: |
           docker push ${{ env.CONTAINER_REGISTRY_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-      - name: Deploy to Container App
-        uses: azure/cli@v1
-        with:
-          azcliversion: 2.60.0
-          inlineScript: |
-            az containerapp update \
-              --name ${{ env.CONTAINER_APP_NAME }} \
-              --resource-group ${{ env.RESOURCE_GROUP }} \
-              --image ${{ env.CONTAINER_REGISTRY_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
