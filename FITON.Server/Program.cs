@@ -21,6 +21,17 @@ if (keyBytes.Length < 32)
 }
 var signingKey = new SymmetricSecurityKey(keyBytes);
 
+// Ensure JWT key is at least 32 bytes (256 bits) as required by HS256
+string rawKey = builder.Configuration["Jwt:Key"] ?? "DevelopmentFallbackJwtKey";
+byte[] keyBytes = Encoding.UTF8.GetBytes(rawKey);
+if (keyBytes.Length < 32)
+{
+    // Hash shorter keys to 32 bytes
+    using var sha = System.Security.Cryptography.SHA256.Create();
+    keyBytes = sha.ComputeHash(keyBytes);
+}
+var signingKey = new SymmetricSecurityKey(keyBytes);
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
