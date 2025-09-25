@@ -16,15 +16,32 @@ export function SignUp({ onSwitchToSignIn }: SignUpProps) {
     confirmPassword: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
       alert('Passwords do not match');
       return;
     }
-    // Handle signup logic here
+      // Handle signup logic here
+      const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+              username: formData.username,
+              email: formData.email,
+              password: formData.password,
+          }),
+      });
+      if (res.ok) {
+          alert('Account created successfully!');
+      }
+      else {
+          alert('Registration unsuccessful, please try again later');
+      }
     console.log('Sign up:', formData);
-    alert('Account created successfully!');
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

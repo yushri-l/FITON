@@ -1,36 +1,53 @@
+name: Build and Deploy FITON Container App
+
 on:
   push:
     branches:
-    - main
+      - main
+
 env:
   DOTNET_CORE_VERSION: 7.0.x
-  CONTAINER_APP_NAME: fiton.server-container-app
+  CONTAINER_APP_NAME: fiton
   CONTAINER_APP_ENVIRONMENT_NAME: FITON
   RESOURCE_GROUP: CSP
   CONTAINER_REGISTRY_NAME: registryfiton
   CONTAINER_REGISTRY_LOGIN_SERVER: registryfiton.azurecr.io
+  IMAGE_NAME: fiton-server
+
 jobs:
-  BuildAndDeployContainerApp:
+  build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout source code
-      uses: actions/checkout@v4
-    - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
-    - name: Azure login
-      uses: azure/login@v2
-      with:
-        creds: ${{ secrets.FITON_SPN }}
-    - name: Container App deploy
-      uses: azure/container-apps-deploy-action@v1
-      with:
-        appSourcePath: ${{ github.workspace }}
-        acrName: ${{ env.CONTAINER_REGISTRY_NAME }}
-        acrUsername: ${{ secrets.registryFITON_USERNAME_2228 }}
-        acrPassword: ${{ secrets.registryFITON_PASSWORD_2228 }}
-        imageToBuild: ${{ env.CONTAINER_REGISTRY_LOGIN_SERVER }}/${{ env.CONTAINER_APP_NAME }}:${{ github.sha }}
-        containerAppName: ${{ env.CONTAINER_APP_NAME }}
-        containerAppEnvironment: ${{ env.CONTAINER_APP_ENVIRONMENT_NAME }}
-        resourceGroup: ${{ env.RESOURCE_GROUP }}
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+
+      - name: Login to Azure Container Registry
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+          registry: ${{ env.CONTAINER_REGISTRY_LOGIN_SERVER }}
+
+      - name: Build Docker image
+        run: |
+          docker build -f FITON.Server/Dockerfile -t ${{ env.CONTAINER_REGISTRY_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+
+      - name: Push Docker image to ACR
+        run: |
+          docker push ${{ env.CONTAINER_REGISTRY_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Deploy to Container App
+        uses: azure/cli@v1
+        with:
+          azcliversion: 2.60.0
+          inlineScript: |
+            az containerapp update \
+              --name ${{ env.CONTAINER_APP_NAME }} \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --image ${{ env.CONTAINER_REGISTRY_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
