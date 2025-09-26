@@ -33,9 +33,11 @@ if (!fs.existsSync(certFilePath) || !fs.existsSync(keyFilePath)) {
         throw new Error("Could not create certificate.");
     }
 }
-
+console.log(env.ASPNETCORE_HTTPS_PORT);
 const target = env.ASPNETCORE_HTTPS_PORT ? `https://localhost:${env.ASPNETCORE_HTTPS_PORT}` :
-    env.ASPNETCORE_URLS ? env.ASPNETCORE_URLS.split(';')[0] : 'https://localhost:8081';
+    env.ASPNETCORE_URLS ? env.ASPNETCORE_URLS.split(';')[0] : 'http://localhost:5230';
+
+console.log(target);
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -49,7 +51,7 @@ export default defineConfig({
         proxy: {
             // Proxy API requests to ASP.NET Core backend
             '^/api': {
-                target: 'https://localhost:8081',
+                target: target,
                 changeOrigin: true,
                 secure: false, // accept self-signed cert
             }

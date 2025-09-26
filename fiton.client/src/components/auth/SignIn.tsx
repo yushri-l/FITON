@@ -4,6 +4,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Shirt } from 'lucide-react';
+import { useAuth } from '../../contexts/authContext';
 
 interface SignInProps {
   onSwitchToSignUp: () => void;
@@ -13,23 +14,23 @@ interface SignInProps {
 
 export function SignIn({ onSwitchToSignUp, onSignInSuccess, onForgotPassword }: SignInProps) {
   const [formData, setFormData] = useState({
-    username: '',
+    email: '',
     password: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Handle signin logic here
     console.log('Sign in:', formData);
+      const { login } = useAuth();
+      try {
+          await login(formData.email, formData.password);
+          onSignInSuccess(formData.email, formData.password);
+          alert('Logged in successfully!');
+      } catch (err: any) {
+          alert(err.message);
+      }
     
-    // Check if admin credentials
-    if (formData.username === 'admin' && formData.password === 'admin123') {
-      alert('Welcome back, Admin!');
-    } else {
-      alert('Welcome back!');
-    }
-    
-    onSignInSuccess(formData.username, formData.password);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

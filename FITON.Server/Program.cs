@@ -29,7 +29,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", policy =>
     {
-        policy.WithOrigins("http://localhost:4403") // React dev URL
+        policy.WithOrigins("https://localhost:4404") // React dev URL
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();

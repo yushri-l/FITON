@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
+import { useAuth } from '../../contexts/authContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 
 interface SignUpProps {
@@ -16,31 +17,20 @@ export function SignUp({ onSwitchToSignIn }: SignUpProps) {
     confirmPassword: ''
   });
 
+  const { register } = useAuth();
+
   const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
       alert('Passwords do not match');
       return;
     }
-      // Handle signup logic here
-      const res = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify({
-              username: formData.username,
-              email: formData.email,
-              password: formData.password,
-          }),
-      });
-      if (res.ok) {
+    try {
+        await register(formData.username, formData.email, formData.password);
           alert('Account created successfully!');
-      }
-      else {
-          alert('Registration unsuccessful, please try again later');
-      }
+     } catch (err: any) {
+        alert(err.message);
+     }
     console.log('Sign up:', formData);
   };
 
