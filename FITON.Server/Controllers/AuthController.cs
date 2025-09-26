@@ -51,6 +51,8 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
+        Console.WriteLine("Login attempt" + dto.Email);
+
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
         if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
             return Unauthorized(new { Error = "Invalid credentials" });

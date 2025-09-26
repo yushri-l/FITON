@@ -17,12 +17,13 @@ export function SignIn({ onSwitchToSignUp, onSignInSuccess, onForgotPassword }: 
     email: '',
     password: ''
   });
+    const { login } = useAuth();
 
     const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Handle signin logic here
     console.log('Sign in:', formData);
-      const { login } = useAuth();
+      
       try {
           await login(formData.email, formData.password);
           onSignInSuccess(formData.email, formData.password);
