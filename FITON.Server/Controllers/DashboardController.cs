@@ -1,13 +1,16 @@
 ﻿using FITON.Server.Utils.Database;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace FITON.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class DashboardController :ControllerBase
+    public class DashboardController : ControllerBase
     {
         private readonly AppDbContext _db;
 
@@ -16,20 +19,17 @@ namespace FITON.Server.Controllers
             _db = db;
         }
 
-<<<<<<< Updated upstream
-=======
         [HttpGet("user-profile")]
         public async Task<IActionResult> GetUserProfile()
         {
             var userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
             if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out var userId))
             {
-                // Debug: capture claims to help diagnose missing sub claim
                 var claims = User?.Claims?.Select(c => new { c.Type, c.Value })?.ToList();
                 return Unauthorized(new { error = "User ID not found in token", claims });
             }
 
-            var user = await _context.Users
+            var user = await _db.Users
                 .Include(u => u.Measurement)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.Id == userId);
@@ -59,8 +59,8 @@ namespace FITON.Server.Controllers
                 return Unauthorized(new { error = "User ID not found in token", claims });
             }
 
-            var hasMeasurements = await _context.Measurements.AnyAsync(m => m.UserId == userId);
-            var user = await _context.Users.FindAsync(userId);
+            var hasMeasurements = await _db.Measurements.AnyAsync(m => m.UserId == userId);
+            var user = await _db.Users.FindAsync(userId);
 
             return Ok(new
             {
@@ -80,13 +80,13 @@ namespace FITON.Server.Controllers
                 return Unauthorized();
             }
 
-            var currentUser = await _context.Users.FindAsync(userId);
+            var currentUser = await _db.Users.FindAsync(userId);
             if (currentUser == null || !currentUser.IsAdmin)
             {
                 return Forbid("Admin access required.");
             }
 
-            var users = await _context.Users
+            var users = await _db.Users
                 .Include(u => u.Measurement)
                 .Select(u => new
                 {
@@ -100,6 +100,6 @@ namespace FITON.Server.Controllers
 
             return Ok(users);
         }
->>>>>>> Stashed changes
     }
 }
+
