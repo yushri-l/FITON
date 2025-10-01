@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using FITON.Server.Utils.Database;
@@ -76,39 +76,69 @@ app.MapControllers();
 
 app.MapFallbackToFile("/index.html");
 
+// ✅ IMPROVED DATABASE INITIALIZATION
+// ✅ IMPROVED DATABASE INITIALIZATION
+Console.WriteLine("🚀 Starting database initialization...");
+
 using (var scope = app.Services.CreateScope())
 {
     try
     {
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        // Check if database can connect
-        if (dbContext.Database.CanConnect())
+        Console.WriteLine("📊 Checking database connection...");
+        var canConnect = dbContext.Database.CanConnect();
+        Console.WriteLine($"✅ Database connection: {canConnect}");
+
+        if (canConnect)
         {
-            Console.WriteLine("Database connected successfully");
+            Console.WriteLine("🛠️ Creating database tables...");
 
-            // Force create all tables
+            // Try multiple approaches
             dbContext.Database.EnsureCreated();
-            Console.WriteLine("Database tables created successfully");
+            Console.WriteLine("✅ EnsureCreated completed");
 
-            // Verify Users table exists
-            var tableExists = dbContext.Database.SqlQueryRaw<int>(
-                "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Users'"
-            ).FirstOrDefault();
+            // Additional check
+            var pendingMigrations = dbContext.Database.GetPendingMigrations().ToList();
+            Console.WriteLine($"📋 Pending migrations: {pendingMigrations.Count}");
 
-            Console.WriteLine($"Users table exists: {tableExists > 0}");
+            if (pendingMigrations.Any())
+            {
+                Console.WriteLine("🔄 Applying migrations...");
+                dbContext.Database.Migrate();
+                Console.WriteLine("✅ Migrations applied");
+            }
+
+            // Final verification
+            try
+            {
+                var userCount = dbContext.Users.Count();
+                Console.WriteLine($"✅ Users table exists with {userCount} records");
+            }
+            catch
+            {
+                Console.WriteLine("❌ Users table still doesn't exist after EnsureCreated");
+            }
         }
         else
         {
-            Console.WriteLine("Cannot connect to database");
+            Console.WriteLine("❌ Cannot connect to database - check connection string");
         }
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Database initialization failed: {ex.Message}");
-        Console.WriteLine($"Full error: {ex}");
+        Console.WriteLine($"💥 DATABASE INITIALIZATION FAILED: {ex.Message}");
+        Console.WriteLine($"🔍 Stack trace: {ex.StackTrace}");
+
+        // Log inner exception if exists
+        if (ex.InnerException != null)
+        {
+            Console.WriteLine($"🔍 Inner exception: {ex.InnerException.Message}");
+        }
     }
 }
+
+Console.WriteLine("🏁 Database initialization complete");
 
 
 app.Run();
