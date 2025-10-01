@@ -5,6 +5,8 @@ import { Label } from '../ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Alert, AlertDescription } from '../ui/alert';
 import { ArrowLeft, Ruler, Save, RotateCcw, AlertCircle, CheckCircle, Shirt } from 'lucide-react';
+import { AvatarDisplay } from './AvatarDisplay';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface Measurements {
   chest: string;
@@ -56,11 +58,16 @@ export function BodyMeasurements({
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [showValidation, setShowValidation] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState<string | null>(null);
+  const [avatarImageUrl, setAvatarImageUrl] = useState<string | null>(null);
+  const [isGenerationEnabled, setIsGenerationEnabled] = useState(false);
 
   // Pre-fill measurements if they exist
   useEffect(() => {
     if (existingMeasurements) {
       setMeasurements(existingMeasurements);
+      setIsGenerationEnabled(true);
     }
   }, [existingMeasurements]);
 
@@ -164,6 +171,7 @@ export function BodyMeasurements({
     onSaveMeasurements(measurements);
     setHasChanges(false);
     setShowValidation(false);
+    setIsGenerationEnabled(true);
     alert('Measurements saved successfully!');
   };
 
@@ -177,6 +185,56 @@ export function BodyMeasurements({
     setErrors({});
     setTouched({});
     setShowValidation(false);
+    setIsGenerationEnabled(!!existingMeasurements);
+  };
+
+  const handleGenerateAvatar = async () => {
+    setIsGenerating(true);
+    setGenerationError(null);
+    setAvatarImageUrl(null);
+
+    const prompt = `A 3D model of a person with the following measurements: 
+      Height: ${measurements.height} cm, 
+      Weight: ${measurements.weight} kg, 
+      Chest: ${measurements.chest} cm, 
+      Waist: ${measurements.waist} cm, 
+      Hips: ${measurements.hips} cm, 
+      Shoulders: ${measurements.shoulders} cm, 
+      Neck: ${measurements.neckCircumference} cm, 
+      Sleeve: ${measurements.sleeveLength} cm, 
+      Inseam: ${measurements.inseam} cm, 
+      Thigh: ${measurements.thigh} cm.`;
+
+    try {
+      const response = await fetch('/api/avatar/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({ prompt })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate avatar. Please try again.');
+      }
+
+      const result = await response.json();
+      
+      // The backend now returns the parsed object directly
+      if (result.modelOutputs && result.modelOutputs.length > 0 && result.modelOutputs[0].image_base64) {
+        const imageUrl = `data:image/png;base64,${result.modelOutputs[0].image_base64}`;
+        setAvatarImageUrl(imageUrl);
+      } else {
+        throw new Error('Could not retrieve image from the generation service.');
+      }
+
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'An unknown error occurred.';
+      setGenerationError(message);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const measurementFields = [
@@ -342,6 +400,15 @@ export function BodyMeasurements({
                   </CardContent>
                 </Card>
               )}
+
+              {/* Avatar Generation Section */}
+              <AvatarDisplay
+                isGenerating={isGenerating}
+                generationError={generationError}
+                avatarImageUrl={avatarImageUrl}
+                onGenerate={handleGenerateAvatar}
+                isGenerationEnabled={isGenerationEnabled}
+              />
             </CardContent>
           </Card>
         </div>

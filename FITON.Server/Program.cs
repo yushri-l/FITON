@@ -42,6 +42,8 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<FITON.Server.Services.AvatarService>();
 
 var app = builder.Build();
 
