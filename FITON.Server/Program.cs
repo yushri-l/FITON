@@ -41,8 +41,8 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", policy =>
     {
-        policy.WithOrigins("https://fiton.delightfulocean-ef07e42f.southeastasia.azurecontainerapps.io","https://localhost:4403") // React dev URL
-              .AllowAnyHeader()
+        policy.AllowAnyOrigin()
+             .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
     });
@@ -55,17 +55,19 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-app.UseCors("CorsPolicy");
-app.UseDefaultFiles();
-app.MapStaticAssets();
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+app.UseDefaultFiles();
+app.MapStaticAssets();
+
+// CORS must come before Authentication and Authorization
+app.UseCors("CorsPolicy");
+
+//app.UseHttpsRedirection();  // Remove this line for Azure Container Apps
 
 app.UseAuthentication();
 app.UseAuthorization();
