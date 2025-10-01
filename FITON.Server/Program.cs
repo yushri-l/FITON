@@ -41,8 +41,8 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", policy =>
     {
-        policy.AllowAnyOrigin()
-             .AllowAnyHeader()
+        policy.WithOrigins("https://fiton.delightfulocean-ef07e42f.southeastasia.azurecontainerapps.io", "https://localhost:4403") // React dev URL
+              .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
     });
@@ -75,70 +75,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.MapFallbackToFile("/index.html");
-
-// ✅ IMPROVED DATABASE INITIALIZATION
-// ✅ IMPROVED DATABASE INITIALIZATION
-Console.WriteLine("🚀 Starting database initialization...");
-
-using (var scope = app.Services.CreateScope())
-{
-    try
-    {
-        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-        Console.WriteLine("📊 Checking database connection...");
-        var canConnect = dbContext.Database.CanConnect();
-        Console.WriteLine($"✅ Database connection: {canConnect}");
-
-        if (canConnect)
-        {
-            Console.WriteLine("🛠️ Creating database tables...");
-
-            // Try multiple approaches
-            dbContext.Database.EnsureCreated();
-            Console.WriteLine("✅ EnsureCreated completed");
-
-            // Additional check
-            var pendingMigrations = dbContext.Database.GetPendingMigrations().ToList();
-            Console.WriteLine($"📋 Pending migrations: {pendingMigrations.Count}");
-
-            if (pendingMigrations.Any())
-            {
-                Console.WriteLine("🔄 Applying migrations...");
-                dbContext.Database.Migrate();
-                Console.WriteLine("✅ Migrations applied");
-            }
-
-            // Final verification
-            try
-            {
-                var userCount = dbContext.Users.Count();
-                Console.WriteLine($"✅ Users table exists with {userCount} records");
-            }
-            catch
-            {
-                Console.WriteLine("❌ Users table still doesn't exist after EnsureCreated");
-            }
-        }
-        else
-        {
-            Console.WriteLine("❌ Cannot connect to database - check connection string");
-        }
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"💥 DATABASE INITIALIZATION FAILED: {ex.Message}");
-        Console.WriteLine($"🔍 Stack trace: {ex.StackTrace}");
-
-        // Log inner exception if exists
-        if (ex.InnerException != null)
-        {
-            Console.WriteLine($"🔍 Inner exception: {ex.InnerException.Message}");
-        }
-    }
-}
-
-Console.WriteLine("🏁 Database initialization complete");
-
 
 app.Run();
