@@ -87,14 +87,21 @@ namespace FITON.Server.Services
                 // Delete from Azure Storage
                 if (!string.IsNullOrEmpty(avatar.ImageUrl))
                 {
-                    var uri = new Uri(avatar.ImageUrl);
-                    var segments = uri.Segments;
-                    var containerName = segments[1].Trim('/');
-                    var blobName = string.Join("", segments.Skip(2)).Trim('/');
+                    try
+                    {
+                        var uri = new Uri(avatar.ImageUrl);
+                        var segments = uri.Segments;
+                        var containerName = segments[1].Trim('/');
+                        var blobName = string.Join("", segments.Skip(2)).Trim('/');
 
-                    var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
-                    var blobClient = containerClient.GetBlobClient(blobName);
-                    await blobClient.DeleteIfExistsAsync();
+                        var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
+                        var blobClient = containerClient.GetBlobClient(blobName);
+                        await blobClient.DeleteIfExistsAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to delete blob from storage for user {UserId}", userId);
+                    }
                 }
 
                 // Delete from database
@@ -197,13 +204,29 @@ namespace FITON.Server.Services
 
         private string CreatePrompt(Measurement measurements)
         {
-            var height = measurements.Height.HasValue ? $"{measurements.Height} cm" : "average";
-            var weight = measurements.Weight.HasValue ? $"{measurements.Weight} kg" : "average";
+            var height = !string.IsNullOrEmpty(measurements.Height) ? measurements.Height : "average height";
+            var weight = !string.IsNullOrEmpty(measurements.Weight) ? measurements.Weight : "average weight";
             var skinColor = !string.IsNullOrEmpty(measurements.SkinColor) ? measurements.SkinColor : "medium";
             var description = !string.IsNullOrEmpty(measurements.Description) ? measurements.Description : "professional appearance";
 
             // Calculate body type from measurements if possible
             var bodyType = CalculateBodyType(measurements);
+
+            // Build additional measurements string
+            var additionalMeasurements = new List<string>();
+
+            if (!string.IsNullOrEmpty(measurements.Chest))
+                additionalMeasurements.Add($"chest: {measurements.Chest}");
+            if (!string.IsNullOrEmpty(measurements.Waist))
+                additionalMeasurements.Add($"waist: {measurements.Waist}");
+            if (!string.IsNullOrEmpty(measurements.Hips))
+                additionalMeasurements.Add($"hips: {measurements.Hips}");
+            if (!string.IsNullOrEmpty(measurements.Shoulders))
+                additionalMeasurements.Add($"shoulders: {measurements.Shoulders}");
+
+            var measurementsText = additionalMeasurements.Any()
+                ? $"Additional measurements: {string.Join(", ", additionalMeasurements)}. "
+                : "";
 
             return $@"
             Create a detailed description for generating a photorealistic avatar portrait:
@@ -213,6 +236,7 @@ namespace FITON.Server.Services
             - Weight: {weight}
             - Body type: {bodyType}
             - Skin tone: {skinColor}
+            {measurementsText}
             - Additional details: {description}
 
             Provide a concise description suitable for AI image generation focusing on:
@@ -229,21 +253,54 @@ namespace FITON.Server.Services
 
         private string CalculateBodyType(Measurement measurements)
         {
-            if (!measurements.Height.HasValue || !measurements.Weight.HasValue || measurements.Height.Value == 0)
+            if (string.IsNullOrEmpty(measurements.Height) || string.IsNullOrEmpty(measurements.Weight))
                 return "average";
 
-            // Calculate BMI
-            var heightInMeters = measurements.Height.Value / 100;
-            var bmi = measurements.Weight.Value / (heightInMeters * heightInMeters);
-
-            return bmi switch
+            try
             {
-                < 18.5 => "slim",
-                >= 18.5 and < 25 => "average",
-                >= 25 and < 30 => "curvy",
-                >= 30 => "stocky",
-                _ => "average"
-            };
+                // Try to parse height and weight
+                var heightValue = ExtractNumericValue(measurements.Height);
+                var weightValue = ExtractNumericValue(measurements.Weight);
+
+                if (heightValue <= 0 || weightValue <= 0)
+                    return "average";
+
+                // Calculate BMI (assuming height is in cm and weight is in kg)
+                var heightInMeters = heightValue / 100;
+                var bmi = weightValue / (heightInMeters * heightInMeters);
+
+                return bmi switch
+                {
+                    < 18.5 => "slim",
+                    >= 18.5 and < 25 => "average",
+                    >= 25 and < 30 => "curvy",
+                    >= 30 => "stocky",
+                    _ => "average"
+                };
+            }
+            catch
+            {
+                return "average";
+            }
+        }
+
+        private double ExtractNumericValue(string measurement)
+        {
+            if (string.IsNullOrEmpty(measurement))
+                return 0;
+
+            // Extract numbers from string (e.g., "180 cm" -> 180, "75 kg" -> 75)
+            var numericPart = new string(measurement
+                .Where(c => char.IsDigit(c) || c == '.' || c == ',')
+                .ToArray())
+                .Replace(',', '.');
+
+            if (double.TryParse(numericPart, out var result))
+            {
+                return result;
+            }
+
+            return 0;
         }
 
         private async Task<string> GenerateImageFromDescriptionAsync(string description)
@@ -276,7 +333,8 @@ namespace FITON.Server.Services
             var containerName = _configuration["AzureStorage:ContainerName"] ?? "avatars";
             var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
 
-            await containerClient.CreateIfExistsAsync(PublicAccessType.Blob);
+            // FIXED: Use CreateIfNotExistsAsync instead of CreateIfExistsAsync
+            await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
 
             var blobClient = containerClient.GetBlobClient(fileName);
 
