@@ -57,5 +57,5 @@ jobs:
           az containerapp update \
             --name fiton \
             --resource-group CSP \
-            --image registryfiton.azurecr.io/fiton-server:latest
+            --image registryfiton.azurecr.io/fiton-server:${{ github.sha }}
 
