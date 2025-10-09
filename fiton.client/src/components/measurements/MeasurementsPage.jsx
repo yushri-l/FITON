@@ -4,13 +4,13 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useMeasurements } from '../../hooks/useMeasurements';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { Card, CardContent, CardHeader } from '../ui/Card';
+import { Card } from '../ui/Card';
 import { Alert } from '../ui/Alert';
 import { Spinner } from '../ui/Spinner';
 
 export const MeasurementsPage = () => {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, refreshAuthState } = useAuth();
   const { measurements, saveMeasurements, deleteMeasurements, isLoading, isSaving, error } = useMeasurements();
   
   const [formData, setFormData] = useState({
@@ -54,9 +54,35 @@ export const MeasurementsPage = () => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     
-    // Clear field error when user starts typing
-    if (formErrors[name]) {
-      setFormErrors(prev => ({ ...prev, [name]: '' }));
+    // Real-time validation
+    const requiredFields = ['height', 'weight'];
+    const numericFields = ['height', 'weight', 'chest', 'waist', 'hips', 'shoulders', 'neckCircumference', 'sleeveLength', 'inseam', 'thigh'];
+    
+    if (numericFields.includes(name)) {
+      // Check if required field is empty
+      if (requiredFields.includes(name) && (!value || value.trim() === '')) {
+        setFormErrors(prev => ({ ...prev, [name]: 'This field is required' }));
+      } else if (value !== '' && value !== null && value !== undefined) {
+        const numValue = Number(value);
+        if (isNaN(numValue) || numValue <= 0) {
+          setFormErrors(prev => ({ ...prev, [name]: 'Must be a positive number' }));
+        } else {
+          // Range validation
+          let error = '';
+          if (name === 'height' && (numValue < 50 || numValue > 300)) {
+            error = 'Height must be between 50-300 cm';
+          } else if (name === 'weight' && (numValue < 20 || numValue > 500)) {
+            error = 'Weight must be between 20-500 kg';
+          } else if (!requiredFields.includes(name) && numValue > 200) {
+            error = 'Value seems too large (max 200 cm)';
+          }
+          
+          setFormErrors(prev => ({ ...prev, [name]: error }));
+        }
+      } else if (!requiredFields.includes(name)) {
+        // Clear error for optional empty fields
+        setFormErrors(prev => ({ ...prev, [name]: '' }));
+      }
     }
     
     // Clear success message when user starts editing
@@ -68,12 +94,46 @@ export const MeasurementsPage = () => {
   const validateForm = () => {
     const errors = {};
     
-    // Validate numeric fields
+    // Define required basic measurements
+    const requiredFields = ['height', 'weight'];
     const numericFields = ['height', 'weight', 'chest', 'waist', 'hips', 'shoulders', 'neckCircumference', 'sleeveLength', 'inseam', 'thigh'];
     
-    numericFields.forEach(field => {
-      if (formData[field] && (isNaN(Number(formData[field])) || Number(formData[field]) <= 0)) {
+    // Check required fields
+    requiredFields.forEach(field => {
+      const value = formData[field];
+      if (!value || value.trim() === '') {
+        errors[field] = 'This field is required';
+        return;
+      }
+      
+      const numValue = Number(value);
+      if (isNaN(numValue) || numValue <= 0) {
         errors[field] = 'Must be a positive number';
+      } else {
+        // Additional range validation
+        if (field === 'height' && (numValue < 50 || numValue > 300)) {
+          errors[field] = 'Height must be between 50-300 cm';
+        } else if (field === 'weight' && (numValue < 20 || numValue > 500)) {
+          errors[field] = 'Weight must be between 20-500 kg';
+        }
+      }
+    });
+    
+    // Validate optional numeric fields
+    numericFields.forEach(field => {
+      if (requiredFields.includes(field)) return; // Already validated above
+      
+      const value = formData[field];
+      if (value !== '' && value !== null && value !== undefined) {
+        const numValue = Number(value);
+        if (isNaN(numValue) || numValue <= 0) {
+          errors[field] = 'Must be a positive number';
+        } else {
+          // Range validation for optional fields
+          if (numValue > 200) {
+            errors[field] = 'Value seems too large (max 200 cm)';
+          }
+        }
       }
     });
     
@@ -104,10 +164,23 @@ export const MeasurementsPage = () => {
       await saveMeasurements(measurementData);
       setSuccessMessage('Measurements saved successfully!');
       
+      // Refresh auth state to ensure user data is up to date
+      await refreshAuthState();
+      
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(''), 3000);
+      
     } catch (error) {
-      // Error is handled by the hook
+      console.error('Save measurements error:', error);
+      
+      // Check if it's an authentication error
+      if (error.response?.status === 401) {
+        setFormErrors({ general: 'Your session has expired. Please log in again.' });
+        setTimeout(() => {
+          logout();
+          navigate('/login');
+        }, 2000);
+      }
     }
   };
 
@@ -137,6 +210,38 @@ export const MeasurementsPage = () => {
     }
   };
 
+  const handleNavigateToDashboard = async () => {
+    // Check if token is still valid before navigating
+    const token = localStorage.getItem('jwt');
+    if (!token) {
+      //await logout();
+      navigate('/dashboard');
+      return;
+    }
+    
+    try {
+      // Test the token by making a quick API call
+      const response = await fetch('http://localhost:5230/api/dashboard/user-profile', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        navigate('/dashboard');
+      } else {
+        // Token is invalid
+       // await logout();
+        navigate('/login');
+      }
+    } catch (error) {
+      console.error('Token validation error:', error);
+     //await logout();
+      navigate('/login');
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -156,30 +261,29 @@ export const MeasurementsPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <h1 className="text-2xl font-bold text-gray-900">Body Measurements</h1>
-            <div className="flex items-center space-x-4">
-              <Button variant="outline" onClick={() => navigate('/dashboard')}>
-                Back to Dashboard
-              </Button>
-              <Button variant="outline" onClick={handleLogout}>
-                Logout
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center">
+            <h1 className="text-3xl font-bold text-gray-900">Body Measurements</h1>
+            <Button variant="outline" onClick={handleNavigateToDashboard}>
+              Back to Dashboard
+            </Button>
+          </div>
+          <p className="text-gray-600 mt-2">Track your body measurements for better fitness monitoring.</p>
+        </div>
+
         {/* Messages */}
         {error && (
           <Alert variant="error" className="mb-6">
             {error}
+          </Alert>
+        )}
+        
+        {formErrors.general && (
+          <Alert variant="error" className="mb-6">
+            {formErrors.general}
           </Alert>
         )}
         
@@ -189,24 +293,23 @@ export const MeasurementsPage = () => {
           </Alert>
         )}
 
-        <Card>
-          <CardHeader>
-            <h3 className="text-lg font-medium text-gray-900">
+        <Card className="p-6">
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
               {measurements ? 'Update Your Measurements' : 'Add Your Measurements'}
             </h3>
             <p className="text-sm text-gray-600">
-              Enter your body measurements to get accurate fitting recommendations. All fields are optional.
+              Enter your body measurements to get accurate fitting recommendations. <span className="text-red-600 font-medium">Height and Weight are required.</span> Other fields are optional.
             </p>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
               
               {/* Basic Measurements */}
               <div>
                 <h4 className="text-md font-medium text-gray-900 mb-4">Basic Measurements</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
-                    label="Height (cm)"
+                    label="Height (cm) *"
                     type="number"
                     name="height"
                     value={formData.height}
@@ -214,9 +317,10 @@ export const MeasurementsPage = () => {
                     error={formErrors.height}
                     placeholder="e.g. 175"
                     step="0.1"
+                    required
                   />
                   <Input
-                    label="Weight (kg)"
+                    label="Weight (kg) *"
                     type="number"
                     name="weight"
                     value={formData.weight}
@@ -224,6 +328,7 @@ export const MeasurementsPage = () => {
                     error={formErrors.weight}
                     placeholder="e.g. 70"
                     step="0.1"
+                    required
                   />
                 </div>
               </div>
@@ -365,7 +470,7 @@ export const MeasurementsPage = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => navigate('/dashboard')}
+                    onClick={handleNavigateToDashboard}
                     disabled={isSaving}
                   >
                     Cancel
@@ -380,9 +485,10 @@ export const MeasurementsPage = () => {
                 </div>
               </div>
             </form>
-          </CardContent>
         </Card>
-      </main>
+      </div>
     </div>
   );
 };
+
+export default MeasurementsPage;

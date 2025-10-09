@@ -5,6 +5,7 @@ import { LoginForm } from './components/auth/LoginForm';
 import { RegisterForm } from './components/auth/RegisterForm';
 import { Dashboard } from './components/dashboard/Dashboard';
 import { MeasurementsPage } from './components/measurements/MeasurementsPage';
+import { Layout } from './components/layout/Layout';
 import { Spinner } from './components/ui/Spinner';
 
 // Protected Route Component
@@ -24,7 +25,7 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  return children;
+  return <Layout>{children}</Layout>;
 };
 
 // Public Route Component (redirect to dashboard if authenticated)

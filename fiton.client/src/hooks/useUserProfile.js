@@ -14,6 +14,7 @@ export const useUserProfile = (autoFetch = true) => {
       const user = await dashboardService.getUserProfile();
       setState({ user, isLoading: false, error: null });
     } catch (error) {
+      console.error('Profile fetch error:', error);
       const errorMessage = error.response?.data?.error || 'Failed to fetch user profile';
       setState({ user: null, isLoading: false, error: errorMessage });
     }

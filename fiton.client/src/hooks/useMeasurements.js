@@ -30,7 +30,21 @@ export const useMeasurements = () => {
     try {
       const savedMeasurements = await measurementsService.saveMeasurements(data);
       setState(prev => ({ ...prev, measurements: savedMeasurements, isSaving: false }));
+      
+      // Force a small delay to ensure token is properly updated before navigation
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
     } catch (error) {
+      console.error('Save measurements error:', error);
+      
+      // Check if it's an authentication error
+      if (error.response?.status === 401) {
+        // Token might have expired, redirect to login
+        localStorage.removeItem('jwt');
+        window.location.href = '/login';
+        return;
+      }
+      
       const errorMessage = error.response?.data?.error || 'Failed to save measurements';
       setState(prev => ({ ...prev, error: errorMessage, isSaving: false }));
       throw error;

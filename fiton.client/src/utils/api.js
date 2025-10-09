@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: 'http://localhost:5230/api',
   withCredentials: true,
 });
 
@@ -62,7 +62,7 @@ api.interceptors.response.use(
 
     try {
       const refreshAxios = axios.create({
-        baseURL: '/api',
+        baseURL: 'http://localhost:5230/api',
         withCredentials: true,
       });
 

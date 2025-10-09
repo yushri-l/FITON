@@ -1,16 +1,25 @@
 import React from 'react';
 
-export const Spinner = ({ size = 'md', className = '' }) => {
+export const Spinner = ({ size = 'md', className = '', variant = 'primary' }) => {
   const sizes = {
+    xs: 'h-3 w-3',
     sm: 'h-4 w-4',
     md: 'h-8 w-8',
     lg: 'h-12 w-12',
+    xl: 'h-16 w-16',
+  };
+
+  const variants = {
+    primary: 'text-blue-600',
+    secondary: 'text-gray-600',
+    white: 'text-white',
+    fashion: 'text-purple-600',
   };
 
   return (
     <div className="flex justify-center items-center">
       <svg
-        className={`animate-spin ${sizes[size]} ${className}`}
+        className={`animate-spin ${sizes[size]} ${variants[variant]} ${className}`}
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"

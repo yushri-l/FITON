@@ -7,6 +7,7 @@ export const useAuth = () => {
     isAuthenticated: false, // Start as false, validate token on mount
     isLoading: true, // Start as loading to validate token
     error: null,
+    user: null,
   });
 
   // Validate token on mount
@@ -19,25 +20,29 @@ export const useAuth = () => {
           isAuthenticated: false,
           isLoading: false,
           error: null,
+          user: null,
         });
         return;
       }
 
       try {
         // Try to use the token to fetch user profile - this will validate it
-        const response = await fetch('/api/dashboard/user-profile', {
+        const response = await fetch('http://localhost:5230/api/dashboard/user-profile', {
           headers: {
             'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
         });
 
         if (response.ok) {
+          const userData = await response.json();
           // Token is valid
           setAuthState({
             token,
             isAuthenticated: true,
             isLoading: false,
             error: null,
+            user: userData,
           });
         } else {
           // Token is invalid, clear it
@@ -47,6 +52,7 @@ export const useAuth = () => {
             isAuthenticated: false,
             isLoading: false,
             error: null,
+            user: null,
           });
         }
       } catch (error) {
@@ -57,6 +63,7 @@ export const useAuth = () => {
           isAuthenticated: false,
           isLoading: false,
           error: null,
+          user: null,
         });
       }
     };
@@ -80,6 +87,7 @@ export const useAuth = () => {
         isAuthenticated: true,
         isLoading: false,
         error: null,
+        user: null, // Will be populated when user profile is fetched
       });
     } else {
       localStorage.removeItem('jwt');
@@ -88,6 +96,7 @@ export const useAuth = () => {
         isAuthenticated: false,
         isLoading: false,
         error: null,
+        user: null,
       });
     }
   };
@@ -97,6 +106,23 @@ export const useAuth = () => {
     try {
       const response = await authService.login(credentials);
       setAuthData(response.token);
+      
+      // Fetch user profile after successful login
+      try {
+        const userResponse = await fetch('http://localhost:5230/api/dashboard/user-profile', {
+          headers: {
+            'Authorization': `Bearer ${response.token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          setAuthState(prev => ({ ...prev, user: userData }));
+        }
+      } catch (userError) {
+        console.error('Failed to fetch user profile:', userError);
+      }
     } catch (error) {
       const errorMessage = error.response?.data?.error || 'Login failed';
       setError(errorMessage);
@@ -138,11 +164,38 @@ export const useAuth = () => {
     }
   }, [authState.error]);
 
+  // Method to refresh user data/auth state
+  const refreshAuthState = useCallback(async () => {
+    const token = localStorage.getItem('jwt');
+    if (!token) return;
+    
+    try {
+      const response = await fetch('http://localhost:5230/api/dashboard/user-profile', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        setAuthState(prev => ({
+          ...prev,
+          user: userData,
+          error: null,
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to refresh auth state:', error);
+    }
+  }, []);
+
   return {
     ...authState,
     login,
     register,
     logout,
+    refreshAuthState,
     clearError: () => setAuthState(prev => ({ ...prev, error: null })),
   };
 };
