@@ -1,5 +1,6 @@
 ﻿using FITON.Server.DTOs;
 using FITON.Server.Models;
+using FITON.Server.Services;
 using FITON.Server.Utils.Database;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,8 +16,18 @@ namespace FITON.Server.Controllers
     public class MeasurementsController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IAvatarService _avatarService;
+        private readonly ILogger<MeasurementsController> _logger;
 
-        public MeasurementsController(AppDbContext context) => _context = context;
+        public MeasurementsController(
+            AppDbContext context,
+            IAvatarService avatarService,
+            ILogger<MeasurementsController> logger)
+        {
+            _context = context;
+            _avatarService = avatarService;
+            _logger = logger;
+        }
 
         private int GetUserIdFromToken()
         {
@@ -100,6 +111,27 @@ namespace FITON.Server.Controllers
 
                 _context.Measurements.Update(existing);
                 await _context.SaveChangesAsync();
+                if (ShouldRegenerateAvatar(oldHeight, oldWeight, oldSkinColor, dto.Height, dto.Weight, dto.SkinColor))
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            var newAvatarUrl = await _avatarService.GenerateAvatarFromMeasurementsAsync(existing);
+                            if (!string.IsNullOrEmpty(newAvatarUrl))
+                            {
+                                existing.AvatarUrl = newAvatarUrl;
+                                _context.Measurements.Update(existing);
+                                await _context.SaveChangesAsync();
+                                _logger.LogInformation("Avatar regenerated for user {UserId}", userId);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Failed to regenerate avatar for user {UserId}", userId);
+                        }
+                    });
+                }
                 return Ok(existing);
             }
 
@@ -122,6 +154,25 @@ namespace FITON.Server.Controllers
 
             await _context.Measurements.AddAsync(newMeasurement);
             await _context.SaveChangesAsync();
+            // Generate avatar for new measurements (async - don't block response)
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var avatarUrl = await _avatarService.GenerateAvatarFromMeasurementsAsync(newMeasurement);
+                    if (!string.IsNullOrEmpty(avatarUrl))
+                    {
+                        newMeasurement.AvatarUrl = avatarUrl;
+                        _context.Measurements.Update(newMeasurement);
+                        await _context.SaveChangesAsync();
+                        _logger.LogInformation("Avatar generated for new user {UserId}", userId);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to generate avatar for new user {UserId}", userId);
+                }
+            });
 
             return Ok(newMeasurement);
         }

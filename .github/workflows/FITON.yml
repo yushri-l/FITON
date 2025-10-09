@@ -42,3 +42,17 @@ jobs:
         run: |
           docker push ${{ env.CONTAINER_REGISTRY_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AUTHSERVICE_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AUTHSERVICE_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AUTHSERVICE_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to Azure Container App
+        run: |
+          az containerapp update \
+            --name fiton \
+            --resource-group CSP \
+            --image registryfiton.azurecr.io/fiton-server:latest
+

@@ -27,6 +27,7 @@ namespace FITON.Server.Utils.Database
         public DbSet<User> Users => Set<User>();
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         public DbSet<Measurement> Measurements => Set<Measurement>();
+        public DbSet<Avatar> Avatars  => Set<Avatar>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -37,9 +38,15 @@ namespace FITON.Server.Utils.Database
                 .IsUnique();
 
             modelBuilder.Entity<User>()
-                .HasOne(u => u.Measurement)
-                .WithOne(m => m.User)
-                .HasForeignKey<Measurement>(m => m.UserId)
+            .HasOne(u => u.Measurement)
+            .WithOne()
+            .HasForeignKey<Measurement>(m => m.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.Avatar)
+                .WithOne(a => a.User)
+                .HasForeignKey<Avatar>(a => a.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

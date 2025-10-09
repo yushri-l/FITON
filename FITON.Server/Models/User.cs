@@ -11,6 +11,8 @@
 
         // One-to-one measurement (optional)
         public Measurement? Measurement { get; set; }
+
+        public Avatar? Avatar { get; set; }
     }
 
     public class RefreshToken
