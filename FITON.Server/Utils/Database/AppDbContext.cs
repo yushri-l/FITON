@@ -28,6 +28,7 @@ namespace FITON.Server.Utils.Database
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         public DbSet<Measurement> Measurements => Set<Measurement>();
         public DbSet<Outfit> Outfits => Set<Outfit>();
+        public DbSet<Wardrobe> Wardrobes => Set<Wardrobe>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -50,6 +51,13 @@ namespace FITON.Server.Utils.Database
                 .HasForeignKey(o => o.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Wardrobe relationships
+            modelBuilder.Entity<Wardrobe>()
+                .HasOne(w => w.User)
+                .WithMany()
+                .HasForeignKey(w => w.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // Indexes for better performance
             modelBuilder.Entity<Outfit>()
                 .HasIndex(o => o.UserId);
@@ -59,6 +67,13 @@ namespace FITON.Server.Utils.Database
 
             modelBuilder.Entity<Outfit>()
                 .HasIndex(o => o.Type);
+
+            // Wardrobe indexes
+            modelBuilder.Entity<Wardrobe>()
+                .HasIndex(w => w.UserId);
+
+            modelBuilder.Entity<Wardrobe>()
+                .HasIndex(w => w.Occasion);
         }
     }
 }

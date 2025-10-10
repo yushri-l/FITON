@@ -36,7 +36,7 @@ export const ClothesPage = () => {
     size: '',
     color: '',
     type: 'Shirt',
-    imageUrl: ''
+    image: ''
   });
   const [formError, setFormError] = useState(null);
 
@@ -106,10 +106,10 @@ export const ClothesPage = () => {
       size: outfit.size,
       color: outfit.color,
       type: outfit.type,
-      imageUrl: outfit.imageUrl
+      image: outfit.image
     });
     // Set image preview if outfit has an image
-    setImagePreview(outfit.imageUrl || null);
+    setImagePreview(outfit.image || null);
     setImageFile(null);
   };
 
@@ -129,7 +129,7 @@ export const ClothesPage = () => {
       size: '',
       color: '',
       type: 'Shirt',
-      imageUrl: ''
+      image: ''
     });
   };
 
@@ -165,7 +165,7 @@ export const ClothesPage = () => {
   const clearImage = () => {
     setImageFile(null);
     setImagePreview(null);
-    setFormData(prev => ({ ...prev, imageUrl: '' }));
+    setFormData(prev => ({ ...prev, image: '' }));
   };
 
   const handleFormSubmit = async (e) => {
@@ -184,12 +184,12 @@ export const ClothesPage = () => {
     }
 
     try {
-      let imageUrl = formData.imageUrl;
+      let image = formData.image;
       
       // If there's a new image file, convert it to base64
       if (imageFile) {
         const reader = new FileReader();
-        imageUrl = await new Promise((resolve, reject) => {
+        image = await new Promise((resolve, reject) => {
           reader.onload = () => resolve(reader.result);
           reader.onerror = reject;
           reader.readAsDataURL(imageFile);
@@ -204,7 +204,7 @@ export const ClothesPage = () => {
         size: formData.size,
         color: formData.color,
         type: formData.type,
-        imageUrl: imageUrl
+        image: image
       };
 
       if (showEditForm && editingOutfit) {
@@ -227,7 +227,7 @@ export const ClothesPage = () => {
         size: '',
         color: '',
         type: 'Shirt',
-        imageUrl: ''
+        image: ''
       });
       setImageFile(null);
       setImagePreview(null);
@@ -260,9 +260,9 @@ export const ClothesPage = () => {
     >
       <CardHeader className="p-0">
         <div className="relative overflow-hidden rounded-t-xl">
-          {outfit.imageUrl && outfit.imageUrl !== "/images/outfit1.jpg" ? (
+          {outfit.image && outfit.image !== "/images/outfit1.jpg" ? (
             <img 
-              src={outfit.imageUrl} 
+              src={outfit.image} 
               alt={outfit.name}
               className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
             />

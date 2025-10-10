@@ -70,3 +70,36 @@ export const clothesService = {
     return response.data;
   },
 };
+
+// Wardrobe Service (for complete outfits)
+export const wardrobeService = {
+  async getWardrobes() {
+    const response = await api.get('/wardrobe');
+    return response.data;
+  },
+
+  async getWardrobe(wardrobeId) {
+    const response = await api.get(`/wardrobe/${wardrobeId}`);
+    return response.data;
+  },
+
+  async saveWardrobe(wardrobe) {
+    const response = await api.post('/wardrobe', wardrobe);
+    return response.data;
+  },
+
+  async updateWardrobe(wardrobeId, wardrobe) {
+    const response = await api.put(`/wardrobe/${wardrobeId}`, wardrobe);
+    return response.data;
+  },
+
+  async deleteWardrobe(wardrobeId) {
+    const response = await api.delete(`/wardrobe/${wardrobeId}`);
+    return response.data;
+  },
+
+  async getFilteredClothes(type) {
+    const response = await api.get(`/wardrobe/clothes/filtered?type=${type}`);
+    return response.data;
+  },
+};

@@ -52,6 +52,18 @@ export const ClothesIcon = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
+// Cabinet Icon for wardrobe/outfit management
+export const WardrobeIcon = ({ className = "w-5 h-5" }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h18v16H3V4z" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h9M12 10h9" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 14h9M12 14h9" />
+    <circle cx="8" cy="12" r="0.5" fill="currentColor" />
+    <circle cx="16" cy="12" r="0.5" fill="currentColor" />
+  </svg>
+);
+
 export const TryOnIcon = (props) => (
   <Icon {...props}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />

@@ -30,7 +30,7 @@ namespace FITON.Server.Models
         [StringLength(50)]
         public string Type { get; set; } = "Shirt";
         
-        public string ImageUrl { get; set; } = "";
+        public string Image { get; set; } = "";
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

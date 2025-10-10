@@ -12,7 +12,7 @@ namespace FITON.Server.DTOs
         public string Size { get; set; } = "";
         public string Color { get; set; } = "";
         public string Type { get; set; } = "Shirt";
-        public string ImageUrl { get; set; } = "";
+        public string Image { get; set; } = "";
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public int UserId { get; set; }
@@ -45,7 +45,7 @@ namespace FITON.Server.DTOs
         public string Type { get; set; } = "Shirt";
 
         // [Url(ErrorMessage = "Please provide a valid URL for the image")] // Removed strict URL validation
-        public string ImageUrl { get; set; } = "";
+        public string Image { get; set; } = "";
     }
 
     public class UpdateOutfitDto
@@ -72,7 +72,7 @@ namespace FITON.Server.DTOs
         public string? Type { get; set; }
 
         // [Url(ErrorMessage = "Please provide a valid URL for the image")] // Removed strict URL validation
-        public string? ImageUrl { get; set; }
+        public string? Image { get; set; }
     }
 
     public class OutfitResponseDto
@@ -85,8 +85,15 @@ namespace FITON.Server.DTOs
         public string Size { get; set; } = "";
         public string Color { get; set; } = "";
         public string Type { get; set; } = "Shirt";
-        public string ImageUrl { get; set; } = "";
+        public string Image { get; set; } = "";
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+    }
+
+    public class OutfitListResponseDto
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = "";
+        public List<OutfitDto> Data { get; set; } = new();
     }
 }
