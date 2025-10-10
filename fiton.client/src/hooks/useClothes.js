@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { wardrobeService } from '../services/api';
+import { clothesService } from '../services/api';
 
-export const useWardrobe = () => {
+export const useClothes = () => {
   const [state, setState] = useState({
     outfits: [],
     isLoading: false,
@@ -12,7 +12,7 @@ export const useWardrobe = () => {
   const fetchOutfits = useCallback(async () => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
     try {
-      const outfits = await wardrobeService.getOutfits();
+      const outfits = await clothesService.getOutfits();
       setState(prev => ({ ...prev, outfits, isLoading: false }));
     } catch (error) {
       // Check if it's an authentication error
@@ -31,7 +31,7 @@ export const useWardrobe = () => {
   const saveOutfit = async (outfitData) => {
     setState(prev => ({ ...prev, isSaving: true, error: null }));
     try {
-      const response = await wardrobeService.saveOutfit(outfitData);
+      const response = await clothesService.saveOutfit(outfitData);
       // The backend returns the outfit directly, not wrapped in an object
       setState(prev => ({ 
         ...prev, 
@@ -63,7 +63,7 @@ export const useWardrobe = () => {
   const updateOutfit = async (outfitId, outfitData) => {
     setState(prev => ({ ...prev, isSaving: true, error: null }));
     try {
-      const response = await wardrobeService.updateOutfit(outfitId, outfitData);
+      const response = await clothesService.updateOutfit(outfitId, outfitData);
       // Update the outfit in the state
       setState(prev => ({ 
         ...prev, 
@@ -97,7 +97,7 @@ export const useWardrobe = () => {
   const deleteOutfit = useCallback(async (outfitId) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
     try {
-      await wardrobeService.deleteOutfit(outfitId);
+      await clothesService.deleteOutfit(outfitId);
       setState(prev => ({ 
         ...prev, 
         outfits: prev.outfits.filter(outfit => outfit.id !== outfitId), 

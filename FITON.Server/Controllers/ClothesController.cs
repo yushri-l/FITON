@@ -9,11 +9,11 @@ using System.Security.Claims;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class WardrobeController : ControllerBase
+public class ClothesController : ControllerBase
 {
     private readonly AppDbContext _db;
 
-    public WardrobeController(AppDbContext db)
+    public ClothesController(AppDbContext db)
     {
         _db = db;
     }

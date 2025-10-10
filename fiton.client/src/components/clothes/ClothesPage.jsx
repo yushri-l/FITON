@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { useWardrobe } from '../../hooks/useWardrobe';
+import { useClothes } from '../../hooks/useClothes';
 import { Button } from '../ui/Button';
 import { Card, CardContent, CardHeader } from '../ui/Card';
 import { Alert } from '../ui/Alert';
 import { Spinner } from '../ui/Spinner';
 import { Input } from '../ui/Input';
 import { 
-  WardrobeIcon, 
+  ClothesIcon, 
   ArrowRightIcon,
   PlusIcon,
   LogoutIcon,
@@ -18,10 +18,10 @@ import {
   XIcon
 } from '../ui/Icons';
 
-export const WardrobePage = () => {
+export const ClothesPage = () => {
   const navigate = useNavigate();
   const { logout, isAuthenticated } = useAuth();
-  const { outfits, isLoading, error, deleteOutfit, saveOutfit, updateOutfit, isSaving } = useWardrobe();
+  const { outfits, isLoading, error, deleteOutfit, saveOutfit, updateOutfit, isSaving } = useClothes();
   const [selectedOutfit, setSelectedOutfit] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
@@ -239,11 +239,11 @@ export const WardrobePage = () => {
   const EmptyState = () => (
     <div className="text-center py-16">
       <div className="mx-auto w-32 h-32 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center mb-6">
-        <WardrobeIcon size="xl" className="text-purple-600" />
+        <ClothesIcon size="xl" className="text-purple-600" />
       </div>
       <h3 className="text-xl font-semibold text-gray-800 mb-3">No clothing items yet</h3>
       <p className="text-gray-600 mb-6 max-w-md mx-auto">
-        Start building your digital wardrobe by adding your first clothing item!
+        Start building your digital clothes collection by adding your first clothing item!
       </p>
       <Button variant="primary" className="inline-flex items-center" onClick={handleAddOutfit}>
         <PlusIcon size="sm" className="mr-2" />
@@ -268,7 +268,7 @@ export const WardrobePage = () => {
             />
           ) : (
             <div className="w-full h-48 bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 flex items-center justify-center">
-              <WardrobeIcon size="xl" className="text-purple-600" />
+              <ClothesIcon size="xl" className="text-purple-600" />
             </div>
           )}
           <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-medium text-purple-700">
@@ -362,7 +362,7 @@ export const WardrobePage = () => {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
         <div className="text-center">
           <Spinner size="lg" />
-          <p className="mt-4 text-gray-600 font-medium">Loading your wardrobe...</p>
+          <p className="mt-4 text-gray-600 font-medium">Loading your clothes...</p>
         </div>
       </div>
     );
@@ -376,10 +376,10 @@ export const WardrobePage = () => {
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-4">
               <div className="p-2 bg-gradient-fashion rounded-xl">
-                <WardrobeIcon size="md" className="text-white" />
+                <ClothesIcon size="md" className="text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">My Wardrobe</h1>
+                <h1 className="text-2xl font-bold text-gray-900">My Clothes</h1>
                 <p className="text-gray-600">Manage your saved outfits</p>
               </div>
             </div>
@@ -407,7 +407,7 @@ export const WardrobePage = () => {
         {error && (
           <div className="mb-6">
             <Alert variant="error">
-              <h3 className="font-bold">Error loading wardrobe</h3>
+              <h3 className="font-bold">Error loading clothes</h3>
               <p>{error}</p>
             </Alert>
           </div>

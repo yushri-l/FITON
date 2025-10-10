@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useUserProfile } from '../../hooks/useUserProfile';
-import { useWardrobe } from '../../hooks/useWardrobe';
+import { useClothes } from '../../hooks/useClothes';
 import { Button } from '../ui/Button';
 import { Card, CardContent, CardHeader } from '../ui/Card';
 import { Alert } from '../ui/Alert';
@@ -10,7 +10,7 @@ import { Spinner } from '../ui/Spinner';
 import { 
   UserIcon, 
   MeasurementIcon, 
-  WardrobeIcon, 
+  ClothesIcon, 
   TryOnIcon, 
   StatsIcon, 
   SparklesIcon,
@@ -24,7 +24,7 @@ export const Dashboard = () => {
   const navigate = useNavigate();
   const { isAuthenticated, refreshAuthState } = useAuth();
   const { user, isLoading, error, refetch } = useUserProfile();
-  const { outfits } = useWardrobe();
+  const { outfits } = useClothes();
 
   // Only fetch profile if authenticated
   useEffect(() => {
@@ -47,8 +47,8 @@ export const Dashboard = () => {
     navigate('/measurements');
   };
 
-  const handleNavigateToWardrobe = () => {
-    navigate('/wardrobe');
+  const handleNavigateToClothes = () => {
+    navigate('/clothes');
   };
 
   const handleRetryProfile = () => {
@@ -96,7 +96,7 @@ export const Dashboard = () => {
                     Welcome to your style journey, {user?.username}! ✨
                   </h2>
                   <p className="text-white/90 text-lg max-w-2xl">
-                    Track your measurements, build your wardrobe, and discover your perfect fit with AI-powered recommendations.
+                    Track your measurements, build your clothes collection, and discover your perfect fit with AI-powered recommendations.
                   </p>
                 </div>
                 <div className="hidden lg:block">
@@ -126,10 +126,10 @@ export const Dashboard = () => {
           <Card className="hover:scale-105 transition-transform duration-200">
             <CardContent className="text-center py-6">
               <div className="p-3 bg-emerald-100 rounded-full w-fit mx-auto mb-4">
-                <WardrobeIcon size="lg" className="text-emerald-600" />
+                <ClothesIcon size="lg" className="text-emerald-600" />
               </div>
               <h3 className="text-2xl font-bold text-emerald-600">{outfits?.length || 0}</h3>
-              <p className="text-gray-600 font-medium">Wardrobe Items</p>
+              <p className="text-gray-600 font-medium">Clothing Items</p>
             </CardContent>
           </Card>
 
@@ -286,15 +286,15 @@ export const Dashboard = () => {
                   </Button>
 
                   <Button 
-                    onClick={handleNavigateToWardrobe}
+                    onClick={handleNavigateToClothes}
                     variant="outline"
                     className="flex items-center justify-between p-4 h-auto"
                   >
                     <div className="flex items-center">
-                      <WardrobeIcon size="md" className="mr-3 text-emerald-600" />
+                      <ClothesIcon size="md" className="mr-3 text-emerald-600" />
                       <div className="text-left">
-                        <p className="font-semibold">Wardrobe {outfits?.length > 0 && `(${outfits.length})`}</p>
-                        <p className="text-sm text-gray-600">Browse your outfits</p>
+                        <p className="font-semibold">Clothes {outfits?.length > 0 && `(${outfits.length})`}</p>
+                        <p className="text-sm text-gray-600">Browse your clothes</p>
                       </div>
                     </div>
                     <ArrowRightIcon size="sm" />

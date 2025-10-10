@@ -5,7 +5,7 @@ import { LoginForm } from './components/auth/LoginForm';
 import { RegisterForm } from './components/auth/RegisterForm';
 import { Dashboard } from './components/dashboard/Dashboard';
 import { MeasurementsPage } from './components/measurements/MeasurementsPage';
-import { WardrobePage } from './components/wardrobe/WardrobePage';
+import { ClothesPage } from './components/clothes/ClothesPage';
 import { Layout } from './components/layout/Layout';
 import { Spinner } from './components/ui/Spinner';
 
@@ -94,10 +94,10 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/wardrobe"
+        path="/clothes"
         element={
           <ProtectedRoute>
-            <WardrobePage />
+            <ClothesPage />
           </ProtectedRoute>
         }
       />

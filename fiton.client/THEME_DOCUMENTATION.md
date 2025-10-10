@@ -53,7 +53,7 @@ FITON now features a comprehensive, professional theme system designed specifica
   - Placeholder animations
 
 #### 4. **Icon System**
-- **Complete Icon Library**: Dashboard, User, Measurement, Wardrobe, TryOn, Stats, etc.
+- **Complete Icon Library**: Dashboard, User, Measurement, Clothes, TryOn, Stats, etc.
 - **Size Variants**: xs, sm, md, lg, xl, 2xl
 - **Consistent stroke width**: 2px for visual harmony
 

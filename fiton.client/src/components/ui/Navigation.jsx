@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from './Button';
-import { DashboardIcon, MeasurementIcon, WardrobeIcon, SparklesIcon, LogoutIcon } from './Icons';
+import { DashboardIcon, MeasurementIcon, ClothesIcon, SparklesIcon, LogoutIcon } from './Icons';
 
 export const Navigation = () => {
   const { logout, user } = useAuth();
@@ -71,15 +71,15 @@ export const Navigation = () => {
               Measurements
             </Link>
             <Link
-              to="/wardrobe"
+              to="/clothes"
               className={`flex items-center px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                isActive('/wardrobe')
+                isActive('/clothes')
                   ? 'bg-gradient-primary text-white shadow-lg'
                   : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
               }`}
             >
-              <WardrobeIcon size="sm" className="mr-2" />
-              Wardrobe
+              <ClothesIcon size="sm" className="mr-2" />
+              Clothes
             </Link>
           </div>
 
@@ -176,16 +176,16 @@ export const Navigation = () => {
                 Measurements
               </Link>
               <Link
-                to="/wardrobe"
+                to="/clothes"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={`flex items-center px-3 py-2 rounded-xl text-base font-medium transition-all duration-200 ${
-                  isActive('/wardrobe')
+                  isActive('/clothes')
                     ? 'bg-gradient-primary text-white shadow-lg'
                     : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
                 }`}
               >
-                <WardrobeIcon size="sm" className="mr-3" />
-                Wardrobe
+                <ClothesIcon size="sm" className="mr-3" />
+                Clothes
               </Link>
               <div className="pt-3 border-t border-gray-200/50 mt-3">
                 <div className="px-3 py-2">

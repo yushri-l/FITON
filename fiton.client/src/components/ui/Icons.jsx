@@ -45,11 +45,11 @@ export const MeasurementIcon = (props) => (
   </Icon>
 );
 
-export const WardrobeIcon = (props) => (
-  <Icon {...props}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M8 2h8v4l4 2v2l-4-1v13H8V9l-4 1V8l4-2V2z" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M8 6h8" />
-  </Icon>
+// ClothesIcon for clothes management
+export const ClothesIcon = ({ className = "w-5 h-5" }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+  </svg>
 );
 
 export const TryOnIcon = (props) => (
