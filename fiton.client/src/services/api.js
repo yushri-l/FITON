@@ -37,7 +37,8 @@ export const measurementsService = {
     return response.data;
   },
 
-  async saveMeasurements(measurements) {
+    async saveMeasurements(measurements) {
+        console.log(measurements);
     const response = await api.post('/avatar/measurements/save', measurements);
     return response.data;
   },

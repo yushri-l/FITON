@@ -25,7 +25,8 @@ export const useMeasurements = () => {
     }
   }, []);
 
-  const saveMeasurements = useCallback(async (data) => {
+    const saveMeasurements = useCallback(async (data) => {
+        console.log(data);
     setState(prev => ({ ...prev, isSaving: true, error: null }));
     try {
       const savedMeasurements = await measurementsService.saveMeasurements(data);

@@ -1,0 +1,19 @@
+using Xunit;
+using System.Net;
+using FluentAssertions;
+using FITON.Server;
+using Microsoft.AspNetCore.Mvc.Testing;
+using System.Threading.Tasks;
+
+public class DashboardControllerTests : IClassFixture<WebApplicationFactory<Program>>
+{
+    private readonly HttpClient _client;
+    public DashboardControllerTests(WebApplicationFactory<Program> factory) => _client = factory.CreateClient();
+
+    [Fact]
+    public async Task Dashboard_ShouldReturnOk()
+    {
+        var res = await _client.GetAsync("/api/Dashboard");
+        res.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+}

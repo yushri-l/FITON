@@ -1,6 +1,5 @@
 ﻿using FITON.Server.DTOs;
 using FITON.Server.Models;
-using FITON.Server.Services;
 using FITON.Server.Utils.Database;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,18 +15,8 @@ namespace FITON.Server.Controllers
     public class MeasurementsController : ControllerBase
     {
         private readonly AppDbContext _context;
-        private readonly IAvatarService _avatarService;
-        private readonly ILogger<MeasurementsController> _logger;
 
-        public MeasurementsController(
-            AppDbContext context,
-            IAvatarService avatarService,
-            ILogger<MeasurementsController> logger)
-        {
-            _context = context;
-            _avatarService = avatarService;
-            _logger = logger;
-        }
+        public MeasurementsController(AppDbContext context) => _context = context;
 
         private int GetUserIdFromToken()
         {
@@ -74,17 +63,7 @@ namespace FITON.Server.Controllers
                 Console.WriteLine($"Returning measurement: {System.Text.Json.JsonSerializer.Serialize(measurement)}");
                 Console.WriteLine("=== FETCH MEASUREMENTS END ===");
 
-                var avatar = await _avatarService.GetUserAvatarAsync(userId);
-                var response = new
-                {
-                    measurement,
-                    avatarUrl = avatar?.ImageUrl
-                };
-
-                Console.WriteLine($"Returning measurement with avatar: {avatar != null}");
-                Console.WriteLine("=== FETCH MEASUREMENTS END ===");
-
-                return Ok(response);
+                return Ok(measurement);
             }
             catch (Exception ex)
             {
@@ -104,15 +83,8 @@ namespace FITON.Server.Controllers
             var userId = GetUserIdFromToken();
             var existing = await _context.Measurements.FirstOrDefaultAsync(m => m.UserId == userId);
 
-            string? oldHeight = null;
-            string? oldWeight = null;
-            string? oldSkinColor = null;    
             if (existing != null)
             {
-
-                oldHeight = existing.Height;
-                oldWeight = existing.Weight;
-                oldSkinColor = existing.SkinColor;
                 // Update all optional fields dynamically
                 existing.Height = dto.Height;
                 existing.Weight = dto.Weight;
@@ -129,29 +101,7 @@ namespace FITON.Server.Controllers
 
                 _context.Measurements.Update(existing);
                 await _context.SaveChangesAsync();
-                if (ShouldRegenerateAvatar(oldHeight, oldWeight, oldSkinColor, dto.Height, dto.Weight, dto.SkinColor))
-                {
-                    _ = Task.Run(async () =>
-                    {
-                        try
-                        {
-                            var newAvatar = await _avatarService.GenerateAvatarFromMeasurementsAsync(userId, existing);
-                            _logger.LogInformation("Avatar regenerated for user {UserId}", userId);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Failed to regenerate avatar for user {UserId}", userId);
-                        }
-                    });
-                }
-                var currentAvatar = await _avatarService.GetUserAvatarAsync(userId);
-                var response = new
-                {
-                    measurement = existing,
-                    avatarUrl = currentAvatar?.ImageUrl
-                };
-
-                return Ok(response);
+                return Ok(existing);
             }
 
             var newMeasurement = new Measurement
@@ -173,26 +123,8 @@ namespace FITON.Server.Controllers
 
             await _context.Measurements.AddAsync(newMeasurement);
             await _context.SaveChangesAsync();
-            // Generate avatar for new measurements (async - don't block response)
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    var avatar = await _avatarService.GenerateAvatarFromMeasurementsAsync(userId, newMeasurement);
-                    _logger.LogInformation("Avatar generated for new user {UserId}", userId);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to generate avatar for new user {UserId}", userId);
-                }
-            });
-            var initialResponse = new
-            {
-                measurement = newMeasurement,
-                avatarUrl = (string?)null
-            };
 
-            return Ok(initialResponse);
+            return Ok(newMeasurement);
         }
 
         [HttpDelete("remove")]
@@ -206,19 +138,5 @@ namespace FITON.Server.Controllers
             await _context.SaveChangesAsync();
             return Ok(new { message = "Measurements deleted successfully." });
         }
-        private bool ShouldRegenerateAvatar(string? oldHeight, string? oldWeight, string? oldSkinColor,
-                                         string? newHeight, string? newWeight, string? newSkinColor)
-        {
-            // Regenerate avatar if key physical characteristics change
-            bool heightChanged = oldHeight != newHeight;
-            bool weightChanged = oldWeight != newWeight;
-            bool skinColorChanged = oldSkinColor != newSkinColor;
-
-            Console.WriteLine($"Avatar regeneration check - Height changed: {heightChanged}, Weight changed: {weightChanged}, Skin color changed: {skinColorChanged}");
-
-            return heightChanged || weightChanged || skinColorChanged;
-        }
-
-}
-
+    }
 }
