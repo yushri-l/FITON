@@ -41,7 +41,13 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", policy =>
     {
-        policy.WithOrigins("https://fiton.delightfulocean-ef07e42f.southeastasia.azurecontainerapps.io", "https://localhost:4403") // React dev URL
+        policy.WithOrigins(
+                "https://fiton.delightfulocean-ef07e42f.southeastasia.azurecontainerapps.io",
+                "https://localhost:4403",
+                "https://localhost:4404",
+                "http://localhost:4403",
+                "http://localhost:4404",
+                "http://localhost:5174") // Various dev server URLs
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -49,7 +55,12 @@ builder.Services.AddCors(options =>
 });
 
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.WriteIndented = true;
+    });
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 

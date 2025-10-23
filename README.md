@@ -1,4 +1,4 @@
-# Fiton – Virtual Wardrobe
+# Fiton – Virtual Clothes Fitting
 
 ## Project Overview
 **Fiton** is a personalized virtual fitting room application that allows users to create avatars based on body measurements and virtually try on clothing from partner fashion brands. The system aims to reduce return rates, increase user confidence in online shopping, and provide brands with actionable insights into customer preferences.
@@ -23,7 +23,7 @@
 ### User Features
 - Create personalized avatars from body measurements.  
 - Try clothes virtually on avatars with realistic fit and style simulation.  
-- Save outfits and maintain a virtual wardrobe.  
+- Save outfits and maintain a virtual clothes collection.  
 - Mark clothes or outfits as favorites.  
 - Receive size recommendations and personalized suggestions.
 
@@ -86,9 +86,9 @@ This will start the React/Next.js frontend on the configured port (default: `htt
 1. Register a new account or login with existing credentials.  
 2. Enter your body measurements in the avatar form.  
 3. Generate your personalized avatar.  
-4. Browse clothes from the wardrobe or shop section.  
+4. Browse clothes from the clothes section or shop.  
 5. Try clothes on your avatar and save favorites.  
-6. Manage outfits in your wardrobe for future reference.  
+6. Manage outfits in your clothes collection for future reference.  
 
 ---
 

@@ -12,6 +12,9 @@
         // One-to-one measurement (optional)
         public Measurement? Measurement { get; set; }
 
+        // One-to-many outfits
+        public List<Outfit> Outfits { get; set; } = new();
+
         public Avatar? Avatar { get; set; }
     }
 
