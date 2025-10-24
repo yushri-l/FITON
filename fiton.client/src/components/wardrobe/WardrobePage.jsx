@@ -6,6 +6,7 @@ import { Input } from '../ui/Input';
 import { Alert } from '../ui/Alert';
 import { Spinner } from '../ui/Spinner';
 import { WardrobeIcon } from '../ui/Icons';
+import { Client } from "@gradio/client";
 
 const WardrobePage = () => {
   const {
@@ -25,7 +26,9 @@ const WardrobePage = () => {
 
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingWardrobe, setEditingWardrobe] = useState(null);
-  const [formData, setFormData] = useState({
+  const [generatedImages, setGeneratedImages] = useState({});
+  const [generating, setGenerating] = useState({});
+  const [formData, setFormData] = useState({ 
     name: '',
     description: '',
     topClothesId: '',
@@ -150,6 +153,35 @@ const WardrobePage = () => {
   const getClothingItem = (clothesArray, id) => {
     return clothesArray.find(c => c.id === id);
   };
+    const generateOutfitImage = async (wardrobe) => {
+        console.log(wardrobe);
+        const id = wardrobe.id;
+        setGenerating(prev => ({ ...prev, [id]: true }));
+
+        try {
+            const client = await Client.connect("HumanAIGC/OutfitAnyone");
+
+            // Prepare prompt from wardrobe data
+            const topItem = getClothingItem(topClothes, wardrobe.topClothesId).image;
+            const bottomItem = getClothingItem(bottomClothes, wardrobe.bottomClothesId).image;
+            const response_0 = await fetch("https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png");
+            console.log(topItem);
+            const exampleImage = await response_0.blob();
+            const result = await client.predict("/get_tryon_result", {
+                model_name: exampleImage,
+                garment1: topItem,
+                garment2: bottomItem,
+            });
+            // Gradio returns base64 string
+            setGeneratedImages(prev => ({ ...prev, [id]: result.data }));
+        } catch (err) {
+            console.error("Failed to generate outfit:", err);
+            alert("Failed to generate outfit image. Try again.");
+        } finally {
+            setGenerating(prev => ({ ...prev, [id]: false }));
+        }
+    };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 p-6">
@@ -566,6 +598,23 @@ const WardrobePage = () => {
                       >
                         🗑️
                       </button>
+                      <Button
+                          onClick={() => generateOutfitImage(wardrobe)}
+                          disabled={generating[wardrobe.id]}
+                          className="mt-2 bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white text-sm px-3 py-1 rounded"
+                        >
+                          {generating[wardrobe.id] ? "Generating..." : "Generate"}
+                        </Button>
+
+                        {generatedImages[wardrobe.id] && (
+                          <div className="mt-4">
+                            <img
+                              src={generatedImages[wardrobe.id]}
+                              alt="Generated Outfit"
+                              className="w-full h-auto rounded-lg border shadow-sm"
+                            />
+                          </div>
+                        )}
                     </div>
                   </div>
 

@@ -5,6 +5,7 @@ import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Alert } from '../ui/Alert';
 import { Spinner } from '../ui/Spinner';
+import { measurementsService } from '../../services/api'; 
 
 const VirtualTryOnPage = () => {
   const { user } = useAuth();
@@ -58,27 +59,17 @@ const VirtualTryOnPage = () => {
       const token = localStorage.getItem('jwt'); // Fixed: use 'jwt' instead of 'authToken'
       console.log('🔍 Checking measurements with token:', token ? 'Token exists' : 'No token');
       
-      // Check if user has measurements
-      const measurementResponse = await fetch('/api/avatar/check-measurements', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+        // Check if user has measurements
+        const measurementResponse = await measurementsService.checkMeasurements();
       
-      console.log('📡 Measurement response status:', measurementResponse.status);
+      console.log('📡 Measurement response status:', measurementResponse);
       
-      if (!measurementResponse.ok) {
-        const errorText = await measurementResponse.text();
-        console.error('❌ Measurement check failed:', errorText);
+      if (!measurementResponse) {
         throw new Error('Failed to check measurements');
-      }
-      
-      const measurementData = await measurementResponse.json();
-      console.log('✅ Measurement check result:', measurementData);
-      setHasMeasurements(measurementData.hasMeasurements);
-      
-      if (measurementData.hasMeasurements) {
+        }
+        setHasMeasurements(measurementResponse);
+
+        if (hasMeasurements) {
         console.log('👤 User has measurements, loading avatars...');
         // Load user's avatars
         const avatarResponse = await fetch('/api/avatar', {

@@ -39,7 +39,17 @@ export const ClothesPage = () => {
     image: ''
   });
   const [formError, setFormError] = useState(null);
-
+    const [filter, setFilter] = useState({
+        name: '',
+        category: 'All',
+        type: 'All'
+    });
+    const filteredOutfits = outfits.filter(o => {
+        const matchesName = o.name.toLowerCase().includes(filter.name.toLowerCase());
+        const matchesCategory = filter.category === 'All' || o.category === filter.category;
+        const matchesType = filter.type === 'All' || o.type === filter.type;
+        return matchesName && matchesCategory && matchesType;
+    });
   // Authentication check
   useEffect(() => {
     if (!isAuthenticated) {
@@ -427,13 +437,57 @@ export const ClothesPage = () => {
             Add New Item
           </Button>
         </div>
+              {/* Filter Bar */}
+              <div className="flex flex-col md:flex-row gap-2 mb-6">
+                  <Input
+                      placeholder="Search by name"
+                      value={filter.name}
+                      onChange={e => setFilter({ ...filter, name: e.target.value })}
+                      className="flex-1"
+                  />
+                  <select
+                      value={filter.category}
+                      onChange={e => setFilter({ ...filter, category: e.target.value })}
+                      className="border rounded px-2 py-1"
+                  >
+                      <option value="All">All Categories</option>
+                      <option value="Casual">Casual</option>
+                      <option value="Business">Business</option>
+                      <option value="Formal">Formal</option>
+                      <option value="Sport">Sport</option>
+                      <option value="Evening">Evening</option>
+                      <option value="Summer">Summer</option>
+                      <option value="Winter">Winter</option>
+                  </select>
+                  <select
+                      value={filter.type}
+                      onChange={e => setFilter({ ...filter, type: e.target.value })}
+                      className="border rounded px-2 py-1"
+                  >
+                      <option value="All">All Types</option>
+                      <option value="Shirt">Shirt</option>
+                      <option value="T-Shirt">T-Shirt</option>
+                      <option value="Pants">Pants</option>
+                      <option value="Jeans">Jeans</option>
+                      <option value="Shorts">Shorts</option>
+                      <option value="Dress">Dress</option>
+                      <option value="Skirt">Skirt</option>
+                      <option value="Jacket">Jacket</option>
+                      <option value="Sweater">Sweater</option>
+                      <option value="Hoodie">Hoodie</option>
+                      <option value="Shoes">Shoes</option>
+                      <option value="Sneakers">Sneakers</option>
+                      <option value="Boots">Boots</option>
+                      <option value="Sandals">Sandals</option>
+                  </select>
+              </div>
 
         {/* Outfits Grid */}
-        {outfits.length === 0 ? (
+        {filteredOutfits.length === 0 ? (
           <EmptyState />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {outfits.map((outfit) => (
+            {filteredOutfits.map((outfit) => (
               <OutfitCard key={outfit.id} outfit={outfit} />
             ))}
           </div>

@@ -36,7 +36,11 @@ export const measurementsService = {
   async getMeasurements() {
     const response = await api.get('/avatar/measurements/retrieve');
     return response.data;
-  },
+    },
+    async checkMeasurements() {
+        const response = await api.get('/avatar/measurements/retrieve');
+        return response.data !== null ? true : false;
+    },
 
     async saveMeasurements(measurements) {
         console.log(measurements);
