@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using FITON.Server.Utils.Database;
@@ -6,11 +6,10 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-//builder.Services.AddDbContext<AppDbContext>(options =>
-//    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Add services to the container.k
 builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseInMemoryDatabase("FitonDevDB"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 
 builder.Services.AddAuthentication(options =>
 {
@@ -67,17 +66,19 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-app.UseCors("CorsPolicy");
-app.UseDefaultFiles();
-app.MapStaticAssets();
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+app.UseDefaultFiles();
+app.MapStaticAssets();
+
+// CORS must come before Authentication and Authorization
+app.UseCors("CorsPolicy");
+
+//app.UseHttpsRedirection();  // Remove this line for Azure Container Apps
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -87,3 +88,5 @@ app.MapControllers();
 app.MapFallbackToFile("/index.html");
 
 app.Run();
+
+public partial class Program { }

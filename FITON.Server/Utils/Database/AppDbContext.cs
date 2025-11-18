@@ -27,6 +27,9 @@ namespace FITON.Server.Utils.Database
         public DbSet<User> Users => Set<User>();
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         public DbSet<Measurement> Measurements => Set<Measurement>();
+        public DbSet<Outfit> Outfits => Set<Outfit>();
+        public DbSet<Wardrobe> Wardrobes => Set<Wardrobe>();
+        public DbSet<Avatar> Avatars => Set<Avatar>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -41,6 +44,48 @@ namespace FITON.Server.Utils.Database
                 .WithOne(m => m.User)
                 .HasForeignKey<Measurement>(m => m.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Outfit relationships
+            modelBuilder.Entity<Outfit>()
+                .HasOne(o => o.User)
+                .WithMany(u => u.Outfits)
+                .HasForeignKey(o => o.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Wardrobe relationships
+            modelBuilder.Entity<Wardrobe>()
+                .HasOne(w => w.User)
+                .WithMany()
+                .HasForeignKey(w => w.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Indexes for better performance
+            modelBuilder.Entity<Outfit>()
+                .HasIndex(o => o.UserId);
+
+            modelBuilder.Entity<Outfit>()
+                .HasIndex(o => o.Category);
+
+            modelBuilder.Entity<Outfit>()
+                .HasIndex(o => o.Type);
+
+            // Wardrobe indexes
+            modelBuilder.Entity<Wardrobe>()
+                .HasIndex(w => w.UserId);
+
+            modelBuilder.Entity<Wardrobe>()
+                .HasIndex(w => w.Occasion);
+
+            // Avatar relationships
+            modelBuilder.Entity<Avatar>()
+                .HasOne(a => a.User)
+                .WithMany()
+                .HasForeignKey(a => a.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Avatar indexes
+            modelBuilder.Entity<Avatar>()
+                .HasIndex(a => a.UserId);
         }
     }
 }

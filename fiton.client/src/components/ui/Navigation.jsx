@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from './Button';
-import { DashboardIcon, MeasurementIcon, SparklesIcon, LogoutIcon } from './Icons';
+import { DashboardIcon, MeasurementIcon, ClothesIcon, WardrobeIcon, VirtualTryOnIcon, SparklesIcon, LogoutIcon } from './Icons';
 
 export const Navigation = () => {
   const { logout, user } = useAuth();
@@ -37,9 +37,12 @@ export const Navigation = () => {
               <div className="p-2 bg-gradient-fashion rounded-xl">
                 <SparklesIcon size="md" className="text-white" />
               </div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                FITON
-              </h1>
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  FITON
+                </h1>
+                <p className="text-xs text-gray-500 hidden sm:block">Your personal style companion</p>
+              </div>
             </Link>
           </div>
 
@@ -66,6 +69,39 @@ export const Navigation = () => {
             >
               <MeasurementIcon size="sm" className="mr-2" />
               Measurements
+            </Link>
+            <Link
+              to="/clothes"
+              className={`flex items-center px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                isActive('/clothes')
+                  ? 'bg-gradient-primary text-white shadow-lg'
+                  : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+              }`}
+            >
+              <ClothesIcon size="sm" className="mr-2" />
+              Clothes
+            </Link>
+            <Link
+              to="/wardrobe"
+              className={`flex items-center px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                isActive('/wardrobe')
+                  ? 'bg-gradient-primary text-white shadow-lg'
+                  : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+              }`}
+            >
+              <WardrobeIcon size="sm" className="mr-2" />
+              Wardrobe
+            </Link>
+            <Link
+              to="/virtual-try-on"
+              className={`flex items-center px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                isActive('/virtual-try-on')
+                  ? 'bg-gradient-primary text-white shadow-lg'
+                  : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+              }`}
+            >
+              <VirtualTryOnIcon size="sm" className="mr-2" />
+              Virtual Try-On
             </Link>
           </div>
 
@@ -160,6 +196,42 @@ export const Navigation = () => {
               >
                 <MeasurementIcon size="sm" className="mr-3" />
                 Measurements
+              </Link>
+              <Link
+                to="/clothes"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`flex items-center px-3 py-2 rounded-xl text-base font-medium transition-all duration-200 ${
+                  isActive('/clothes')
+                    ? 'bg-gradient-primary text-white shadow-lg'
+                    : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+                }`}
+              >
+                <ClothesIcon size="sm" className="mr-3" />
+                Clothes
+              </Link>
+              <Link
+                to="/wardrobe"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`flex items-center px-3 py-2 rounded-xl text-base font-medium transition-all duration-200 ${
+                  isActive('/wardrobe')
+                    ? 'bg-gradient-primary text-white shadow-lg'
+                    : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+                }`}
+              >
+                <WardrobeIcon size="sm" className="mr-3" />
+                Wardrobe
+              </Link>
+              <Link
+                to="/virtual-try-on"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`flex items-center px-3 py-2 rounded-xl text-base font-medium transition-all duration-200 ${
+                  isActive('/virtual-try-on')
+                    ? 'bg-gradient-primary text-white shadow-lg'
+                    : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+                }`}
+              >
+                <VirtualTryOnIcon size="sm" className="mr-3" />
+                Virtual Try-On
               </Link>
               <div className="pt-3 border-t border-gray-200/50 mt-3">
                 <div className="px-3 py-2">

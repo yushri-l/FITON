@@ -34,7 +34,7 @@ FITON Client is a modern, professional React application for personal style and 
 - Professional navigation
 
 ### 🔮 **Future Ready**
-- Wardrobe management (coming soon)
+- Clothes management
 - Virtual try-on (coming soon)
 - Style analytics (coming soon)
 
@@ -219,7 +219,7 @@ The application includes:
 - [ ] Enhanced accessibility features
 
 ### Phase 2
-- [ ] Wardrobe management
+- [ ] Clothes management
 - [ ] Virtual try-on functionality
 - [ ] Style recommendations
 

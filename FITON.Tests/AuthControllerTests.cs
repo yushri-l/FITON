@@ -1,107 +1,64 @@
-﻿using FITON.Server.Controllers;
-using FITON.Server.Models;
-using FITON.Server.Utils.Database;
-using FITON.Tests.Mocks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using System.Collections.Generic;
+﻿using Xunit;
+using System.Net;
+using System.Net.Http.Json;
+using FluentAssertions;
+using FITON.Server;
+using Microsoft.AspNetCore.Mvc.Testing;
 using System.Threading.Tasks;
-using Xunit;
 
-namespace FITON.Tests
+public class AuthControllerTests : IClassFixture<WebApplicationFactory<Program>>
 {
-    public class AuthControllerTests
+    private readonly HttpClient _client;
+
+    public AuthControllerTests(WebApplicationFactory<Program> factory)
     {
-        private AppDbContext GetDbContext()
-        {
-            var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase(System.Guid.NewGuid().ToString())
-                .Options;
-            return new AppDbContext(options);
-        }
+        _client = factory.CreateClient();
+    }
 
-        private IConfiguration GetConfiguration()
-        {
-            var inMemorySettings = new Dictionary<string, string?> {
-                {"Jwt:Key", "SuperSecretKey1234567890"},
-                {"Jwt:Issuer", "TestIssuer"},
-                {"Jwt:Audience", "TestAudience"}
-            };
-            return new ConfigurationBuilder()
-                .AddInMemoryCollection(inMemorySettings)
-                .Build();
-        }
+    [Fact]
+    public async Task Register_ShouldReturnOk_ForValidUser()
+    {
+        // Use a unique email to avoid conflicts with other tests
+        var uniqueEmail = $"newuser{Guid.NewGuid().ToString().Substring(0, 8)}@example.com";
+        var request = new { Username = $"testuser{Guid.NewGuid().ToString().Substring(0, 8)}", Email = uniqueEmail, Password = "StrongPass123!" };
 
-        private AuthController GetController(AppDbContext db)
-        {
-            var config = GetConfiguration();
-            var env = new WebHostEnvironmentMock();  // Pass this
-            var controller = new AuthController(db, config, env);
-            controller.ControllerContext.HttpContext = new DefaultHttpContext();
-            return controller;
-        }
+        var response = await _client.PostAsJsonAsync("/api/Auth/register", request);
 
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
 
-        [Fact]
-        public async Task Register_Should_CreateUser()
-        {
-            var db = GetDbContext();
-            var controller = GetController(db);
+    [Fact]
+    public async Task Register_ShouldFail_ForDuplicateEmail()
+    {
+        var user = new { Username = "dupuser", Email = "dup@example.com", Password = "Abc123!" };
+        await _client.PostAsJsonAsync("/api/Auth/register", user);
+        var response = await _client.PostAsJsonAsync("/api/Auth/register", user);
 
-            var dto = new RegisterDto
-            {
-                Username = "testuser",
-                Email = "test@example.com",
-                Password = "Password123"
-            };
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
 
-            var result = await controller.Register(dto);
-            var okResult = Assert.IsType<OkObjectResult>(result);
-            Assert.Single(db.Users); // Only one user should exist
-        }
+    [Fact]
+    public async Task Login_ShouldReturnJwt_ForValidUser()
+    {
+        var user = new { Username = "loginuser", Email = "loginuser@example.com", Password = "Pass123!" };
+        await _client.PostAsJsonAsync("/api/Auth/register", user);
+        var loginDto = new { Email = "loginuser@example.com", Password = "Pass123!" };
+        var response = await _client.PostAsJsonAsync("/api/Auth/login", loginDto);
 
-        [Fact]
-        public async Task Login_ValidCredentials_Should_ReturnOk()
-        {
-            var db = GetDbContext();
-            var password = BCrypt.Net.BCrypt.HashPassword("Password123");
-            db.Users.Add(new User
-            {
-                Username = "testuser",
-                Email = "test@example.com",
-                PasswordHash = password
-            });
-            await db.SaveChangesAsync();
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var responseContent = await response.Content.ReadAsStringAsync();
+        responseContent.Should().Contain("token");
+        responseContent.Should().Contain("username");
+    }
 
-            var controller = GetController(db);
-            var dto = new LoginDto { Email = "test@example.com", Password = "Password123" };
-            var result = await controller.Login(dto);
+    [Fact]
+    public async Task Login_ShouldFail_ForInvalidPassword()
+    {
+        var user = new { Username = "failuser", Email = "fail@example.com", Password = "RightPass1!" };
+        await _client.PostAsJsonAsync("/api/Auth/register", user);
+        var wrong = new { Email = "fail@example.com", Password = "WrongPass" };
+        var response = await _client.PostAsJsonAsync("/api/Auth/login", wrong);
 
-            Assert.IsType<OkObjectResult>(result);
-        }
-
-        [Fact]
-        public async Task Login_InvalidPassword_Should_ReturnUnauthorized()
-        {
-            var db = GetDbContext();
-            var password = BCrypt.Net.BCrypt.HashPassword("Password123");
-            db.Users.Add(new User
-            {
-                Username = "testuser",
-                Email = "test@example.com",
-                PasswordHash = password
-            });
-            await db.SaveChangesAsync();
-
-            var controller = GetController(db);
-            var dto = new LoginDto { Email = "test@example.com", Password = "WrongPassword" };
-            var result = await controller.Login(dto);
-
-            Assert.IsType<UnauthorizedObjectResult>(result);
-        }
-
-
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 }

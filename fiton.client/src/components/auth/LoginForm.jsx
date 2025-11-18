@@ -51,7 +51,7 @@ export const LoginForm = () => {
       return;
     }
 
-    try {
+      try {
       await login(formData.email, formData.password);
       navigate('/dashboard');
     } catch (err) {
@@ -112,7 +112,7 @@ export const LoginForm = () => {
                 onChange={handleChange}
                 error={formErrors.email}
                 required
-                icon={emailIcon}
+                // icon={emailIcon}
                 placeholder="Enter your email"
                 className="transition-all duration-200"
               />
@@ -125,7 +125,7 @@ export const LoginForm = () => {
                 onChange={handleChange}
                 error={formErrors.password}
                 required
-                icon={passwordIcon}
+                //icon={passwordIcon}
                 placeholder="Enter your password"
                 className="transition-all duration-200"
               />

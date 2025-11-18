@@ -73,7 +73,6 @@ namespace FITON.Server.Controllers
             }
         }
 
-
         [HttpPost("save")]
         public async Task<IActionResult> SaveMeasurements([FromBody] MeasurementDto dto)
         {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMeasurements } from '../../hooks/useMeasurements';
 import { Button } from '../ui/Button';
@@ -10,6 +10,7 @@ import { Spinner } from '../ui/Spinner';
 
 export const MeasurementsPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { logout, refreshAuthState } = useAuth();
   const { measurements, saveMeasurements, deleteMeasurements, isLoading, isSaving, error } = useMeasurements();
   
@@ -167,8 +168,15 @@ export const MeasurementsPage = () => {
       // Refresh auth state to ensure user data is up to date
       await refreshAuthState();
       
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccessMessage(''), 3000);
+      // If user came from Virtual Try-On, navigate back there after a brief delay
+      if (location.state?.from === '/virtual-try-on') {
+        setTimeout(() => {
+          navigate('/virtual-try-on', { state: { from: '/measurements' } });
+        }, 1500);
+      } else {
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccessMessage(''), 3000);
+      }
       
     } catch (error) {
       console.error('Save measurements error:', error);
@@ -267,9 +275,18 @@ export const MeasurementsPage = () => {
         <div className="mb-8">
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold text-gray-900">Body Measurements</h1>
-            <Button variant="outline" onClick={handleNavigateToDashboard}>
-              Back to Dashboard
-            </Button>
+            {location.state?.from === '/virtual-try-on' ? (
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/virtual-try-on', { state: { from: '/measurements' } })}
+              >
+                Back to Virtual Try-On
+              </Button>
+            ) : (
+              <Button variant="outline" onClick={handleNavigateToDashboard}>
+                Back to Dashboard
+              </Button>
+            )}
           </div>
           <p className="text-gray-600 mt-2">Track your body measurements for better fitness monitoring.</p>
         </div>
@@ -424,15 +441,31 @@ export const MeasurementsPage = () => {
               <div>
                 <h4 className="text-md font-medium text-gray-900 mb-4">Additional Information</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input
-                    label="Skin Color"
-                    type="text"
-                    name="skinColor"
-                    value={formData.skinColor}
-                    onChange={handleChange}
-                    error={formErrors.skinColor}
-                    placeholder="e.g. Fair, Medium, Dark"
-                  />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Skin Color
+                    </label>
+                    <select
+                      name="skinColor"
+                      value={formData.skinColor}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                    >
+                      <option value="">Select skin tone</option>
+                      <option value="Very Fair">Very Fair</option>
+                      <option value="Fair">Fair</option>
+                      <option value="Light">Light</option>
+                      <option value="Light Medium">Light Medium</option>
+                      <option value="Medium">Medium</option>
+                      <option value="Medium Dark">Medium Dark</option>
+                      <option value="Dark">Dark</option>
+                      <option value="Very Dark">Very Dark</option>
+                      <option value="Deep">Deep</option>
+                    </select>
+                    {formErrors.skinColor && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors.skinColor}</p>
+                    )}
+                  </div>
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Description
