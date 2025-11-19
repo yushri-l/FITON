@@ -1,0 +1,56 @@
+name: CI - Run Tests with Coverage
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_CORE_VERSION: 7.0.x
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore FITON.Server/FITON.Server.csproj
+
+      - name: Build solution
+        run: dotnet build FITON.Server/FITON.Server.csproj --no-restore --configuration Release
+
+      - name: Run tests with coverage
+        run: |
+          dotnet test FITON.Tests/FITON.Tests.csproj \
+            --no-build \
+            --verbosity normal \
+            --collect:"XPlat Code Coverage" \
+            /p:CoverletOutputFormat=cobertura
+
+      - name: Upload coverage to GitHub
+        uses: actions/upload-artifact@v3
+        with:
+          name: code-coverage
+          path: FITON.Tests/TestResults/**/coverage.cobertura.xml
+
+      - name: Display test results annotations
+        uses: dorny/test-reporter@v4
+        if: always()
+        with:
+          name: FITON.Tests
+          path: FITON.Tests/TestResults/**/*.trx
+          reporter: dotnet-trx

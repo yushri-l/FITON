@@ -26,7 +26,7 @@ namespace FITON.Tests
         private IConfiguration GetConfiguration()
         {
             var settings = new Dictionary<string, string?> {
-                {"Jwt:Key", "SuperSecretKey1234567890"},
+                {"Secret", "SuperSecretKey123456789012345678901234"},
                 {"Jwt:Issuer", "TestIssuer"},
                 {"Jwt:Audience", "TestAudience"}
             };
@@ -45,7 +45,7 @@ namespace FITON.Tests
         }
 
         [Fact]
-        public async Task Register_Should_CreateUser_And_SetRefreshTokenCookie()
+        public async Task Register_Should_CreateUser_And_LoginSetsRefreshTokenCookie()
         {
             var db = GetDbContext();
             var controller = GetController(db);
@@ -58,10 +58,15 @@ namespace FITON.Tests
             };
 
             var result = await controller.Register(dto);
-            Assert.IsType<OkObjectResult>(result);
+            Assert.IsType<OkResult>(result);
+
+            // Now login to receive refresh token cookie
+            var loginDto = new LoginDto { Email = "test@example.com", Password = "Password123" };
+            var loginResult = await controller.Login(loginDto);
+            Assert.IsType<OkObjectResult>(loginResult);
 
             var cookies = controller.Response.Headers["Set-Cookie"].ToString();
-            Assert.Contains("refreshToken=", cookies);  // ✅ match actual cookie
+            Assert.Contains("refreshToken=", cookies);
         }
 
         [Fact]
