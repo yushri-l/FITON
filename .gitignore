@@ -9,3 +9,4 @@ obj/
 FITON.Server/Migrations/
 FITON.sln
 node_modules
+FITON.Tests/coveragereport/*
