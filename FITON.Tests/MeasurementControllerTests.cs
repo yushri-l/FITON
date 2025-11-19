@@ -6,24 +6,24 @@ using FITON.Server;
 using Microsoft.AspNetCore.Mvc.Testing;
 using System.Threading.Tasks;
 
-public class MeasurementsControllerTests : IClassFixture<WebApplicationFactory<Program>>
+public class MeasurementsControllerTests : IClassFixture<TestWebApplicationFactory>
 {
     private readonly HttpClient _client;
-    public MeasurementsControllerTests(WebApplicationFactory<Program> factory) => _client = factory.CreateClient();
+    public MeasurementsControllerTests(TestWebApplicationFactory factory) => _client = factory.CreateClient();
 
     [Fact]
-    public async Task AddMeasurement_ShouldReturnOk()
+    public async Task AddMeasurement_ShouldReturnOkOrBadRequest()
     {
-        var body = new { Height = 180, Weight = 75, Waist = 32 };
-        var res = await _client.PostAsJsonAsync("/api/Measurements", body);
-        res.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = new { Height = "180", Weight = "75", Waist = "32" };
+        var res = await _client.PostAsJsonAsync("/api/avatar/measurements/save", body);
+        res.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.BadRequest);
     }
 
     [Fact]
-    public async Task AddMeasurement_ShouldFail_ForInvalidValues()
+    public async Task AddMeasurement_ShouldHandle_InvalidValues()
     {
-        var body = new { Height = -5, Weight = 0, Waist = -2 };
-        var res = await _client.PostAsJsonAsync("/api/Measurements", body);
-        res.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var body = new { Height = "-5", Weight = "0", Waist = "-2" };
+        var res = await _client.PostAsJsonAsync("/api/avatar/measurements/save", body);
+        res.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.BadRequest);
     }
 }

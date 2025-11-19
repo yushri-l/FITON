@@ -1,13 +1,12 @@
 using FITON.Server.DTOs;
 using FITON.Server.Models;
 using FITON.Server.Utils.Database;
+using FITON.Server.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Text;
-using Google.Cloud.AIPlatform.V1;
-using Google.Protobuf;
 
 namespace FITON.Server.Controllers
 {
@@ -17,12 +16,12 @@ namespace FITON.Server.Controllers
     public class VirtualTryOnController : ControllerBase
     {
         private readonly AppDbContext _context;
-        private readonly IConfiguration _config;
+        private readonly IImageGenerator _imageGenerator;
 
-        public VirtualTryOnController(AppDbContext context, IConfiguration config)
+        public VirtualTryOnController(AppDbContext context, IImageGenerator imageGenerator)
         {
             _context = context;
-            _config = config;
+            _imageGenerator = imageGenerator;
         }
 
         [HttpPost("generate")]
@@ -45,10 +44,10 @@ namespace FITON.Server.Controllers
             // Validate measurements for AI safety compliance
             if (!string.IsNullOrEmpty(measurements.Height))
             {
-                if (float.TryParse(measurements.Height, out float height) && height < 150)
+                if (float.TryParse(measurements.Height, out float height) && height <150)
                 {
-                    return BadRequest(new { 
-                        error = "Virtual Try-On requires height to be at least 150cm (4'11\") to comply with AI safety guidelines. Please update your measurements to adult proportions." 
+                    return BadRequest(new {
+                        error = "Virtual Try-On requires height to be at least150cm (4'11\") to comply with AI safety guidelines. Please update your measurements to adult proportions."
                     });
                 }
             }
@@ -68,87 +67,14 @@ namespace FITON.Server.Controllers
             // 3. Construct the detailed text prompt for the AI model
             string prompt = ConstructPrompt(measurements, wardrobeOutfit);
 
-            // 4. Call the Vertex AI Imagen API to generate the image
+            // 4. Call the image generator service to create the image
             try
             {
-                // Get your Google Cloud Project details from appsettings.json
-                var projectId = _config["GoogleCloud:ProjectId"];
-                var location = _config["GoogleCloud:Location"];
-                var modelId = "imagegeneration@006"; // Latest Imagen model
-
-                if (string.IsNullOrEmpty(projectId) || string.IsNullOrEmpty(location))
-                {
-                    Console.WriteLine("Google Cloud configuration is missing");
-                    return StatusCode(500, new { error = "Google Cloud is not properly configured. Please check appsettings.json" });
-                }
-
-                // Create the API client. It automatically handles authentication
-                // using the GOOGLE_APPLICATION_CREDENTIALS environment variable.
-                var predictionServiceClient = new PredictionServiceClientBuilder
-                {
-                    Endpoint = $"{location}-aiplatform.googleapis.com"
-                }.Build();
-
-                // Construct the API request payload using proper namespace qualifications
-                var parameters = Google.Protobuf.WellKnownTypes.Value.ForStruct(new Google.Protobuf.WellKnownTypes.Struct
-                {
-                    Fields =
-                    {
-                        { "sampleCount", Google.Protobuf.WellKnownTypes.Value.ForNumber(1) },
-                        { "aspectRatio", Google.Protobuf.WellKnownTypes.Value.ForString("9:16") },
-                        { "safetySetting", Google.Protobuf.WellKnownTypes.Value.ForString("block_some") },
-                        { "personGeneration", Google.Protobuf.WellKnownTypes.Value.ForString("allow_adult") }
-                    }
-                });
-
-                var instance = Google.Protobuf.WellKnownTypes.Value.ForStruct(new Google.Protobuf.WellKnownTypes.Struct
-                {
-                    Fields = { { "prompt", Google.Protobuf.WellKnownTypes.Value.ForString(prompt) } }
-                });
-
-                // Define the full model endpoint path
-                var endpointName = EndpointName.FromProjectLocationPublisherModel(projectId, location, "google", modelId);
-
-                Console.WriteLine($"Calling Vertex AI Imagen at: {endpointName}");
-                Console.WriteLine($"Prompt: {prompt}");
-
-                // Make the actual API call - This will wait for the real image generation
-                PredictResponse response = await predictionServiceClient.PredictAsync(endpointName, new[] { instance }, parameters);
-
-                // Log the full response for debugging
-                Console.WriteLine($"Response received. Predictions count: {response.Predictions.Count}");
-                Console.WriteLine($"Response metadata: {response.Metadata}");
-                
-                // 5. Process the response: The image data comes back as a base64 encoded string
-                if (response.Predictions.Count == 0)
-                {
-                    Console.WriteLine("No predictions returned from the API");
-                    Console.WriteLine($"Full response: {response}");
-                    return StatusCode(500, new { 
-                        error = "No image was generated. This may be due to content filtering or API limitations. Please try with different measurements or outfit combinations." 
-                    });
-                }
-
-                var prediction = response.Predictions[0];
-                var base64ImageData = prediction.StructValue.Fields["bytesBase64Encoded"].StringValue;
-
-                // Format the result as a Data URL, which is easy for the frontend to use directly in an <img> tag
-                var imageUrl = $"data:image/png;base64,{base64ImageData}";
-
-                Console.WriteLine("Image generated successfully");
-                return Ok(new { imageUrl, prompt = prompt });
+                var imageUrl = await _imageGenerator.GenerateImageAsync(prompt);
+                return Ok(new { imageUrl, prompt });
             }
             catch (Exception ex)
             {
-                // Log the detailed error for debugging
-                Console.WriteLine($"Vertex AI API Error: {ex.Message}");
-                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
-                
-                if (ex.InnerException != null)
-                {
-                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
-                }
-
                 return StatusCode(500, new { error = $"Failed to generate image: {ex.Message}" });
             }
         }
