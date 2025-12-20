@@ -56,7 +56,7 @@
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/ApiramRajamohan/FITON.git
+git clone https://github.com/yushri-l/FITON.git
 cd fiton
 ```
 
@@ -123,7 +123,7 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 
 ## Contact
 - **Project Manager / BA:** Dithara Avindi – dithara@example.com  
-- **Frontend Lead:** Yushri – yushri@example.com  
-- **Backend Lead:** Apiram – apiram@example.com  
+- **Frontend Lead:** Yushri – yushri.ml@gmail.com  
+- **Backend Lead:** Apiram – rapiram@gmail.com  
 - **QA Lead:** Dilahara – dilahara@example.com  
 
