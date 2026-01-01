@@ -122,8 +122,8 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 ---
 
 ## Contact
-- **Project Manager / BA:** Dithara Avindi – dithara@example.com  
+- **Project Manager / BA:** Dithara Avindi – dithara@gmail.com  
 - **Frontend Lead:** Yushri – yushri.ml@gmail.com  
 - **Backend Lead:** Apiram – rapiram@gmail.com  
-- **QA Lead:** Dilahara – dilahara@example.com  
+- **QA Lead:** Dilahara – dilahara@gmail.com  
 
